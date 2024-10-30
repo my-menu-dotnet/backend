@@ -1,16 +1,20 @@
 package com.digimenu.auth;
 
+import com.digimenu.models.Company;
+import com.digimenu.models.User;
 import com.github.javafaker.Faker;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 
-public abstract class Auth {
+import java.util.UUID;
+
+public class Auth {
     final Faker faker = new Faker();
     final Gson gson = new Gson();
 
-    @Autowired
-    MockMvc mockMvc;
+    static User user;
+    static Company company;
 
     static String name;
     static String email;

@@ -2,6 +2,8 @@ package com.digimenu.auth;
 
 import com.digimenu.dto.AuthRegister;
 import com.digimenu.models.User;
+import com.github.javafaker.Faker;
+import com.google.gson.Gson;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,25 +20,30 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
-@ExtendWith(MockitoExtension.class)
 @AutoConfigureMockMvc
-@Order(1)
-public class RegisterTest extends Auth {
+public class RegisterTest {
 
     @Autowired
     MockMvc mockMvc;
 
+    final Faker faker = new Faker();
+    final Gson gson = new Gson();
+
     @Test
     public void register() throws Exception {
-        AuthRegister authRegister = new AuthRegister(name, email, cpf, null, password);
+        AuthRegister authRegister = new AuthRegister(
+                faker.name().fullName(),
+                faker.internet().emailAddress(),
+                faker.number().digits(10),
+                null,
+                faker.internet().password()
+        );
         String json = gson.toJson(authRegister);
 
-        MvcResult result = mockMvc.perform(post("/auth/register")
+        mockMvc.perform(post("/auth/register")
                         .contentType("application/json")
                         .content(json))
                 .andExpect(status().isCreated())
                 .andReturn();
-
-        Auth.user = gson.fromJson(result.getResponse().getContentAsString(), User.class);
     }
 }

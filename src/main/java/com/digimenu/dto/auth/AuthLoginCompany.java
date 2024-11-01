@@ -1,6 +1,5 @@
-package com.digimenu.dto;
+package com.digimenu.dto.auth;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 

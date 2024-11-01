@@ -1,16 +1,15 @@
-package com.digimenu.dto;
+package com.digimenu.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
 @AllArgsConstructor
-public class AuthRegister {
-    private String name;
+@NoArgsConstructor
+public class AuthLogin {
     private String email;
-    private String cpf;
-    private String phone;
     private String password;
 }

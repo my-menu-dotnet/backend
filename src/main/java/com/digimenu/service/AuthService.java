@@ -1,6 +1,6 @@
 package com.digimenu.service;
 
-import com.digimenu.dto.AuthRegister;
+import com.digimenu.dto.auth.AuthRegister;
 import com.digimenu.exception.DuplicateException;
 import com.digimenu.exception.NotFoundException;
 import com.digimenu.models.Role;

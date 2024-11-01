@@ -2,8 +2,8 @@ package com.digimenu.auth;
 
 import com.digimenu._utils.CompanyTestHelper;
 import com.digimenu._utils.UserTestHelper;
-import com.digimenu.dto.AuthLogin;
-import com.digimenu.dto.AuthLoginCompany;
+import com.digimenu.dto.auth.AuthLogin;
+import com.digimenu.dto.auth.AuthLoginCompany;
 import com.digimenu.models.Company;
 import com.digimenu.models.User;
 import com.digimenu.security.JwtHelper;

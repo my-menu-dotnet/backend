@@ -1,6 +1,6 @@
 package com.digimenu._utils;
 
-import com.digimenu.dto.AuthRegister;
+import com.digimenu.dto.auth.AuthRegister;
 import com.digimenu.models.User;
 import com.digimenu.repository.UserRepository;
 import com.digimenu.service.AuthService;

@@ -1,6 +1,8 @@
 package com.digimenu.models;
 
 import com.digimenu.enums.FoodStatus;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -39,6 +41,15 @@ public class Food {
 
     @ManyToOne
     @JoinColumn(name = "category_id")
+    @JsonBackReference
     private Category category;
 
+    public Food(String name, String description, double price, String image, FoodStatus status, Category category) {
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.image = image;
+        this.status = status;
+        this.category = category;
+    }
 }

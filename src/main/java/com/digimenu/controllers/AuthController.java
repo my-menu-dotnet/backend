@@ -1,10 +1,9 @@
 package com.digimenu.controllers;
 
-import com.digimenu.dto.AuthLogin;
-import com.digimenu.dto.AuthLoginCompany;
-import com.digimenu.dto.AuthRegister;
+import com.digimenu.dto.auth.AuthLogin;
+import com.digimenu.dto.auth.AuthLoginCompany;
+import com.digimenu.dto.auth.AuthRegister;
 import com.digimenu.exception.InternalErrorException;
-import com.digimenu.exception.NotFoundException;
 import com.digimenu.models.User;
 import com.digimenu.repository.UserRepository;
 import com.digimenu.security.JwtHelper;

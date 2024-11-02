@@ -17,24 +17,17 @@ public class UserTestHelper {
     @Autowired
     private AuthService authService;
 
-    private final Faker faker = new Faker();
     final String NAME = "Test User";
     final String EMAIL = "teste@teste.com";
+    final String CPF = "90828187010";
+    final String PHONE = "11999999999";
     final String PASSWORD = "123456";
 
     public User createUserIfNotExists() {
-        User user = userRepository.findByEmail(EMAIL)
-                .orElse(null);
+        User user = userRepository.findByEmail(EMAIL).orElse(null);
 
         if (user == null) {
-            AuthRegister authRegister = new AuthRegister(
-                    NAME,
-                    EMAIL,
-                    faker.number().digits(10),
-                    null,
-                    PASSWORD
-            );
-
+            AuthRegister authRegister = new AuthRegister(NAME, EMAIL, CPF, PHONE, PASSWORD);
             user = authService.registerUser(authRegister);
         }
 

@@ -1,5 +1,8 @@
 package com.digimenu.models;
 
+import com.digimenu.constraints.CPF;
+import com.digimenu.constraints.FullName;
+import com.digimenu.constraints.Phone;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -25,15 +28,18 @@ public class User implements UserDetails {
     private UUID id;
 
     @Column(name = "name")
+    @FullName
     private String name;
 
     @Column(name = "email")
     private String email;
 
     @Column(name = "cpf")
+    @CPF
     private String cpf;
 
     @Column(name = "phone")
+    @Phone
     private String phone;
 
     @Column(name = "password")

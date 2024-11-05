@@ -34,6 +34,7 @@ public class Category extends CompanyAware {
     private String image;
 
     @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     private CategoryStatus status;
 
     @ManyToOne

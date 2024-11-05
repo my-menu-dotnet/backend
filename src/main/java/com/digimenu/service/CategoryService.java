@@ -10,6 +10,7 @@ import com.digimenu.security.JwtHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -23,6 +24,23 @@ public class CategoryService {
 
     @Autowired
     private JwtHelper jwtHelper;
+
+    public Category[] findAll() {
+        UUID companyId = jwtHelper.extractCompanyId();
+        List<Category> companies = categoryRepository.findAllByCompanyId(companyId);
+
+        if (companies.isEmpty()) {
+            throw new NotFoundException("Category not found");
+        }
+
+        return companies.toArray(new Category[0]);
+    }
+
+    public Category findById(UUID id) {
+        UUID companyId = jwtHelper.extractCompanyId();
+        return categoryRepository.findByIdAndCompanyId(id, companyId)
+                .orElseThrow(() -> new NotFoundException("Category not found"));
+    }
 
     public Category create(CategoryCreate categoryCreate) {
         UUID companyId = jwtHelper.extractCompanyId();

@@ -6,7 +6,7 @@ import jakarta.validation.ConstraintValidatorContext;
 
 public class EmailValidator implements ConstraintValidator<Email, String> {
 
-    private final static String EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+    private final static String EMAIL_REGEX = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
 
     @Override
     public void initialize(Email constraintAnnotation) {
@@ -14,7 +14,7 @@ public class EmailValidator implements ConstraintValidator<Email, String> {
 
     @Override
     public boolean isValid(String email, ConstraintValidatorContext context) {
-        return CPFValidator.isValid(email);
+        return EmailValidator.isValid(email);
     }
 
     public static boolean isValid(String email) {

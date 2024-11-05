@@ -1,5 +1,6 @@
 package com.digimenu.dto.food;
 
+import com.digimenu.constraints.FullName;
 import com.digimenu.enums.FoodStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
@@ -13,8 +14,7 @@ import java.util.UUID;
 @Setter
 public class FoodCreate {
 
-    @Valid
-    @NotBlank
+    @FullName
     String name;
 
     @Valid
@@ -22,9 +22,6 @@ public class FoodCreate {
 
     @Valid
     double price;
-
-    @Valid
-    String image;
 
     @Valid
     @NotBlank

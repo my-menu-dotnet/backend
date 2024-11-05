@@ -26,7 +26,7 @@ public class FoodController {
     @GetMapping
     public ResponseEntity<FoodResponse[]> list() {
         Food[] food = foodService.findAll();
-        FoodResponse[] foodResponse = foodMapper.toFoodResponse(food);
+        FoodResponse[] foodResponse = foodMapper.toFood(food);
 
         return ResponseEntity.status(HttpStatus.OK).body(foodResponse);
     }
@@ -34,7 +34,7 @@ public class FoodController {
     @GetMapping("/{id}")
     public ResponseEntity<FoodResponse> find(@PathVariable UUID id) {
         Food food = foodService.findById(id);
-        FoodResponse foodResponse = foodMapper.toFoodResponse(food);
+        FoodResponse foodResponse = foodMapper.toFood(food);
 
         return ResponseEntity.status(HttpStatus.OK).body(foodResponse);
     }
@@ -43,7 +43,7 @@ public class FoodController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<FoodResponse> create(@RequestBody FoodCreate food) {
         Food newFood = foodService.create(food);
-        FoodResponse foodResponse = foodMapper.toFoodResponse(newFood);
+        FoodResponse foodResponse = foodMapper.toFood(newFood);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(foodResponse);
     }

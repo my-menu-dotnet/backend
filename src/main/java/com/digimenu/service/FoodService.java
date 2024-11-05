@@ -45,7 +45,6 @@ public class FoodService {
                 food.getName(),
                 food.getDescription(),
                 food.getPrice(),
-                food.getImage(),
                 food.getStatus(),
                 category
         );
@@ -63,7 +62,6 @@ public class FoodService {
         existingFood.setName(food.getName());
         existingFood.setDescription(food.getDescription());
         existingFood.setPrice(food.getPrice());
-        existingFood.setImage(food.getImage());
         existingFood.setStatus(food.getStatus());
         existingFood.setCategory(category);
     }

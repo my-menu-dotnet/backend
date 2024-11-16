@@ -1,10 +1,13 @@
 package com.digimenu.controllers;
 
+import com.digimenu.dto.TokenDTO;
 import com.digimenu.dto.auth.AuthLogin;
 import com.digimenu.dto.auth.AuthLoginCompany;
 import com.digimenu.dto.auth.AuthRegister;
 import com.digimenu.exception.InternalErrorException;
+import com.digimenu.models.RefreshToken;
 import com.digimenu.models.User;
+import com.digimenu.repository.RefreshTokenRepository;
 import com.digimenu.repository.UserRepository;
 import com.digimenu.security.JwtHelper;
 import com.digimenu.service.AuthService;
@@ -34,6 +37,9 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody AuthLogin authLogin) {
@@ -44,25 +50,44 @@ public class AuthController {
         final User user = userRepository.findByEmail(authLogin.getEmail())
                 .orElseThrow(() -> new InternalErrorException("User authenticated but not found"));
 
-        final String jwt = jwtHelper.generateTemporaryToken(user);
+        final String jwt = jwtHelper.generateUserToken(user);
+        final String refreshToken = jwtHelper.generateRefreshToken(user);
 
-        return ResponseEntity.status(HttpStatus.OK).header("Authorization", "Bearer " + jwt).build();
-    }
+        RefreshToken refreshTokenEntity = new RefreshToken(refreshToken, user);
+        refreshTokenRepository.save(refreshTokenEntity);
 
-    @PostMapping("/login/company")
-    public ResponseEntity<?> loginCompany(@Valid @RequestBody AuthLoginCompany authLoginCompany) {
-        User user = jwtHelper.extractUser();
-        UUID companyId = authLoginCompany.getCompanyId();
+        TokenDTO tokenDTO = new TokenDTO(user.getId(), jwt, refreshToken);
 
-        authService.validateUserHasCompany(user, companyId);
-
-        String jwt = jwtHelper.generateToken(user, companyId);
-        return ResponseEntity.status(HttpStatus.OK).header("Authorization", "Bearer " + jwt).build();
+        return ResponseEntity.status(HttpStatus.OK).body(tokenDTO);
     }
 
     @PostMapping("/register")
     public ResponseEntity<User> registerUser(@Valid @RequestBody AuthRegister authRegister) {
         User user = authService.registerUser(authRegister);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestBody TokenDTO body) {
+        String refreshToken = body.getRefreshToken();
+
+        RefreshToken refreshTokenEntity = refreshTokenRepository.findById(refreshToken)
+                .orElseThrow(() -> new InternalErrorException("Refresh token not found"));
+
+        refreshTokenRepository.delete(refreshTokenEntity);
+
+        String email = jwtHelper.extractRefreshTokenEmail(refreshToken);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new InternalErrorException("User not found"));
+
+        String jwt = jwtHelper.generateUserToken(user);
+        String newRefreshToken = jwtHelper.generateRefreshToken(user);
+
+        RefreshToken newRefreshTokenEntity = new RefreshToken(newRefreshToken, user);
+        refreshTokenRepository.save(newRefreshTokenEntity);
+
+        TokenDTO tokenDTO = new TokenDTO(user.getId(), jwt, newRefreshToken);
+
+        return ResponseEntity.status(HttpStatus.OK).body(tokenDTO);
     }
 }

@@ -23,6 +23,8 @@ public class FoodCreate {
     @Valid
     double price;
 
+    UUID imageId;
+
     @Valid
     @NotBlank
     FoodStatus status;
@@ -31,4 +33,9 @@ public class FoodCreate {
     @NotBlank
     @JsonProperty("category_id")
     UUID categoryId;
+
+    @Valid
+    @NotBlank
+    @JsonProperty("company_id")
+    UUID companyId;
 }

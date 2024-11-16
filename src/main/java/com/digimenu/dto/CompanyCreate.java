@@ -1,6 +1,7 @@
 package com.digimenu.dto;
 
-import jakarta.validation.Valid;
+import com.digimenu.constraints.Phone;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -8,11 +9,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CompanyRegister {
+public class CompanyCreate {
 
     @NotBlank
     private String name;
@@ -24,6 +28,14 @@ public class CompanyRegister {
     @Email
     private String email;
 
+    @NotBlank
+    @Phone
     private String phone;
 
+    @JsonProperty("categories")
+    private List<UUID> categories;
+
+    @JsonProperty("image_id")
+    @NotBlank
+    private UUID imageId;
 }

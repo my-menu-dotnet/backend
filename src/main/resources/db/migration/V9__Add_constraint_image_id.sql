@@ -1,0 +1,2 @@
+ALTER TABLE company
+    ALTER COLUMN image_id SET NOT NULL

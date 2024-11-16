@@ -1,6 +1,8 @@
 package com.digimenu.models;
 
 import com.digimenu.enums.FoodStatus;
+import com.digimenu.interfaces.Timestamped;
+import com.digimenu.listeners.TimestampedListener;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -9,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -17,7 +20,8 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Food {
+@EntityListeners(TimestampedListener.class)
+public class Food implements Timestamped {
 
     @Id
     @Column(name = "id", unique = true)
@@ -60,6 +64,12 @@ public class Food {
     @JoinColumn(name = "category_id")
     @JsonBackReference
     private Category category;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     public Food(String name, String description, double price, FoodStatus status, Category category) {
         this.name = name;

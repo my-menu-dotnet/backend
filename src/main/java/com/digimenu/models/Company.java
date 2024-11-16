@@ -1,11 +1,13 @@
 package com.digimenu.models;
 
+import com.digimenu.enums.CompanyStatus;
+import com.digimenu.interfaces.Timestamped;
+import com.digimenu.listeners.TimestampedListener;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,7 +16,10 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Company {
+@AllArgsConstructor
+@EntityListeners(TimestampedListener.class)
+@Builder
+public class Company implements Timestamped {
 
     @Id
     @Column(name = "id")
@@ -35,27 +40,22 @@ public class Company {
 
     @ManyToMany
     @JoinTable(
-            name = "user_company",
+            name = "company_category",
             joinColumns = @JoinColumn(name = "company_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
+            inverseJoinColumns = @JoinColumn(name = "category_id")
     )
-    @JsonIgnore
-    private List<User> users;
+    private List<Category> categories;
 
-    public Company(String name, String cnpj, String phone, String email, User user) {
-        this.name = name;
-        this.cnpj = cnpj;
-        this.phone = phone;
-        this.email = email;
-        addUser(user);
-    }
+    @OneToOne
+    private FileStorage image;
 
-    private void addUser(User user) {
-        if (this.users != null) {
-            this.users.add(user);
-            return;
-        }
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private CompanyStatus status;
 
-        this.users = List.of(user);
-    }
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

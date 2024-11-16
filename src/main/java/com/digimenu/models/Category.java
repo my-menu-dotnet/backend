@@ -1,6 +1,10 @@
 package com.digimenu.models;
 
 import com.digimenu.enums.CategoryStatus;
+import com.digimenu.interfaces.CompanyAware;
+import com.digimenu.interfaces.Timestamped;
+import com.digimenu.listeners.CompanyEntityListener;
+import com.digimenu.listeners.TimestampedListener;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -9,6 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,7 +23,9 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Category extends CompanyAware {
+@EntityListeners({CompanyEntityListener.class, TimestampedListener.class})
+public class Category implements CompanyAware, Timestamped {
+
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -30,8 +37,8 @@ public class Category extends CompanyAware {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "image")
-    private String image;
+    @ManyToOne
+    private FileStorage image;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
@@ -46,7 +53,13 @@ public class Category extends CompanyAware {
     @JsonManagedReference
     private List<Food> food;
 
-    public Category(String name, String description, String image, CategoryStatus status, Company company) {
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    public Category(String name, String description, FileStorage image, CategoryStatus status, Company company) {
         this.name = name;
         this.description = description;
         this.image = image;

@@ -3,8 +3,10 @@ package com.digimenu.service;
 import com.digimenu.dto.food.FoodCreate;
 import com.digimenu.exception.NotFoundException;
 import com.digimenu.models.Category;
+import com.digimenu.models.FileStorage;
 import com.digimenu.models.Food;
 import com.digimenu.repository.CategoryRepository;
+import com.digimenu.repository.FileStorageRepository;
 import com.digimenu.repository.FoodRepository;
 import com.digimenu.security.JwtHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,23 +24,24 @@ public class FoodService {
     private CategoryRepository categoryRepository;
 
     @Autowired
+    private FileStorageRepository fileStorageRepository;
+
+    @Autowired
     private JwtHelper jwtHelper;
 
+    @Deprecated
     public Food[] findAll() {
-        UUID companyId = jwtHelper.extractCompanyId();
-        return foodRepository.findAllByCompanyId(companyId)
-                .orElseThrow(() -> new NotFoundException("Food not found"));
+        return foodRepository.findAll()
+                .toArray(new Food[0]);
     }
 
     public Food findById(UUID id) {
-        UUID companyId = jwtHelper.extractCompanyId();
-        return foodRepository.findByIdAndCompanyId(id, companyId)
+        return foodRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Food not found"));
     }
 
     public Food create(FoodCreate food) {
-        UUID companyId = jwtHelper.extractCompanyId();
-        Category category = categoryRepository.findByIdAndCompanyId(food.getCategoryId(), companyId)
+        Category category = categoryRepository.findByIdAndCompanyId(food.getCategoryId(), food.getCompanyId())
                 .orElseThrow(() -> new NotFoundException("Category not found"));
 
         Food newFood = new Food(
@@ -53,16 +56,20 @@ public class FoodService {
     }
 
     public void update(UUID id, FoodCreate food) {
-        UUID companyId = jwtHelper.extractCompanyId();
+        UUID companyId = food.getCompanyId();
+
         Category category = categoryRepository.findByIdAndCompanyId(food.getCategoryId(), companyId)
                 .orElseThrow(() -> new NotFoundException("Category not found"));
         Food existingFood = foodRepository.findByIdAndCompanyId(id, companyId)
                 .orElseThrow(() -> new NotFoundException("Food not found"));
+        FileStorage image = fileStorageRepository.findById(food.getImageId())
+                .orElse(null);
 
         existingFood.setName(food.getName());
         existingFood.setDescription(food.getDescription());
         existingFood.setPrice(food.getPrice());
         existingFood.setStatus(food.getStatus());
+        existingFood.setImage(image);
         existingFood.setCategory(category);
     }
 }

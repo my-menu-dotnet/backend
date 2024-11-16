@@ -3,6 +3,7 @@ package com.digimenu.models;
 import com.digimenu.constraints.CPF;
 import com.digimenu.constraints.FullName;
 import com.digimenu.constraints.Phone;
+import com.digimenu.enums.UserRole;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -52,12 +53,8 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "company_id")
     )
-    private List<Company> companies;
-
-    @ManyToOne
-    @JoinColumn(name = "role_id", referencedColumnName = "id")
     @JsonIgnore
-    private Role role;
+    private List<Company> companies;
 
     public User(String name, String email, String cpf, String phone, String password, Role role) {
         this.name = name;
@@ -65,13 +62,15 @@ public class User implements UserDetails {
         this.cpf = cpf;
         this.phone = phone;
         this.password = password;
-        this.role = role;
     }
 
     @Override
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(role);
+        if (this.companies.isEmpty()) {
+            return List.of();
+        }
+        return List.of(new Role(UserRole.ADMIN));
     }
 
     @Override

@@ -4,8 +4,10 @@ import com.digimenu.dto.category.CategoryCreate;
 import com.digimenu.exception.NotFoundException;
 import com.digimenu.models.Category;
 import com.digimenu.models.Company;
+import com.digimenu.models.FileStorage;
 import com.digimenu.repository.CategoryRepository;
 import com.digimenu.repository.CompanyRepository;
+import com.digimenu.repository.FileStorageRepository;
 import com.digimenu.security.JwtHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,11 +25,14 @@ public class CategoryService {
     private CompanyRepository companyRepository;
 
     @Autowired
+    private FileStorageRepository fileStorageRepository;
+
+    @Autowired
     private JwtHelper jwtHelper;
 
+    @Deprecated
     public Category[] findAll() {
-        UUID companyId = jwtHelper.extractCompanyId();
-        List<Category> companies = categoryRepository.findAllByCompanyId(companyId);
+        List<Category> companies = categoryRepository.findAll();
 
         if (companies.isEmpty()) {
             throw new NotFoundException("Category not found");
@@ -37,20 +42,20 @@ public class CategoryService {
     }
 
     public Category findById(UUID id) {
-        UUID companyId = jwtHelper.extractCompanyId();
-        return categoryRepository.findByIdAndCompanyId(id, companyId)
+        return categoryRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Category not found"));
     }
 
     public Category create(CategoryCreate categoryCreate) {
-        UUID companyId = jwtHelper.extractCompanyId();
-        Company company = companyRepository.findById(companyId)
+        Company company = companyRepository.findById(categoryCreate.getCompanyId())
                 .orElseThrow(() -> new NotFoundException("Company not found"));
+        FileStorage image = fileStorageRepository.findById(categoryCreate.getImageId())
+                .orElse(null);
 
         Category category = new Category(
                 categoryCreate.getName(),
                 categoryCreate.getDescription(),
-                categoryCreate.getImage(),
+                image,
                 categoryCreate.getStatus(),
                 company
         );

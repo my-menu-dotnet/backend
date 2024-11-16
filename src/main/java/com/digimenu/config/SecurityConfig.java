@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/auth/register").permitAll()
                         .requestMatchers("/auth/register/newCompany").permitAll()
+                        .requestMatchers("/auth/refresh-token").permitAll()
                         .requestMatchers("/file/images/**").permitAll()
                         .anyRequest().authenticated())
                 .authenticationManager(authenticationManager)

@@ -1,11 +1,10 @@
 package com.digimenu.models;
 
+import com.digimenu.interfaces.CompanyAware;
+import com.digimenu.listeners.CompanyEntityListener;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -15,7 +14,9 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
-public class FileStorage extends CompanyAware {
+@EntityListeners(CompanyEntityListener.class)
+@Builder
+public class FileStorage {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -29,26 +30,4 @@ public class FileStorage extends CompanyAware {
 
     @Column(name = "size")
     private long size;
-
-    @Column(name = "url")
-    private String url;
-
-    @ManyToOne
-    @JoinColumn(name = "company_id")
-    @JsonIgnore
-    private Company company;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    @JsonIgnore
-    private User user;
-
-    public FileStorage(String fileName, String fileType, long size, String url, Company company, User user) {
-        this.fileName = fileName;
-        this.fileType = fileType;
-        this.size = size;
-        this.url = url;
-        this.company = company;
-        this.user = user;
-    }
 }

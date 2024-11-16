@@ -9,7 +9,4 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CompanyRepository extends JpaRepository<Company, UUID> {
-
-    @Query("SELECT c FROM Company c JOIN c.users u WHERE u.id = :userId")
-    Optional<List<Company>> findAllByUser(UUID userId);
 }

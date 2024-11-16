@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 public class CategoryCreate {
@@ -14,8 +16,10 @@ public class CategoryCreate {
 
     private String description;
 
-    private String image;
+    private UUID imageId;
 
     @NotBlank
     private CategoryStatus status;
+
+    private UUID companyId;
 }

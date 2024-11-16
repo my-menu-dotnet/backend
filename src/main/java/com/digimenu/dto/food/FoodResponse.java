@@ -3,6 +3,7 @@ package com.digimenu.dto.food;
 import com.digimenu.dto.category.CategoryRead;
 import com.digimenu.enums.FoodStatus;
 import com.digimenu.models.Category;
+import com.digimenu.models.FileStorage;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,7 +16,7 @@ public class FoodResponse {
     private String name;
     private String description;
     private double price;
-//    private String image;
+    private FileStorage image;
     private FoodStatus status;
     private CategoryRead category;
 }

@@ -32,7 +32,7 @@ public class GlobalExceptionHandler {
             TransactionSystemException.class,
             ServletException.class
     })
-    public ResponseEntity<Error> handleInternalErrorException(InternalErrorException e) {
+    public ResponseEntity<Error> handleInternalErrorException(Exception e) {
         Error error = new Error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal server error");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }

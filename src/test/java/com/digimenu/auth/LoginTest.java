@@ -61,7 +61,7 @@ public final class LoginTest {
 
     @Test
     public void loginWithCompany() throws Exception {
-        String tempToken = jwtHelper.generateTemporaryToken(user);
+        String tempToken = jwtHelper.generateUserToken(user);
 
         AuthLoginCompany authLoginCompany = new AuthLoginCompany();
         authLoginCompany.setCompanyId(company.getId());

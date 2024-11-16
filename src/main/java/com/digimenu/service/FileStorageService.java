@@ -24,24 +24,12 @@ public class FileStorageService {
     @Autowired
     private FileStorageRepository fileStorageRepository;
 
-    @Autowired
-    private CompanyRepository companyRepository;
-
-    @Autowired
-    private JwtHelper jwtHelper;
-
     private static final String UPLOAD_DIR = "src/main/resources/static/images/";
 
     public FileStorage saveFile(MultipartFile file) {
         if (file.isEmpty()) {
             throw new NotFoundException("File is empty");
         }
-
-        UUID companyId = jwtHelper.extractCompanyId();
-        Company company = companyRepository.findById(companyId)
-                .orElseThrow(() -> new NotFoundException("Company not found"));
-
-        User user = jwtHelper.extractUser();
 
         try {
             String originalFileName = file.getOriginalFilename();
@@ -58,14 +46,13 @@ public class FileStorageService {
 
             file.transferTo(path);
 
-            return createFile(new FileStorage(
-                    fileName,
-                    file.getContentType(),
-                    file.getSize(),
-                    null,
-                    company,
-                    user
-            ));
+            return createFile(
+                    FileStorage.builder()
+                            .fileName(fileName)
+                            .fileType(file.getContentType())
+                            .size(file.getSize())
+                            .build()
+            );
         } catch (IOException e) {
             throw new InternalErrorException("Failed to save file");
         }

@@ -13,7 +13,7 @@ public class PhoneValidator implements ConstraintValidator<Phone, String> {
      * 0800 123 4567
      */
 
-    final static private String PHONE_REGEX = "^(\\(0?\\d{2}\\)\\s?\\d{4,5}-?\\d{4})|(\\(0?\\d{3}\\)\\s?\\d{4}-\\d{4})|(\\d{4,5}\\s?\\d{4})|(0800\\s\\d{3}\\s\\d{4})$";
+    final static private String PHONE_REGEX = "^(?:\\(?([1-9][0-9])\\)?)? ?(?:9\\d{4}|[2-9]\\d{3})-?\\d{4}$";
 
     @Override
     public void initialize(Phone constraintAnnotation) {

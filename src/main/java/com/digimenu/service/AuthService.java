@@ -3,9 +3,7 @@ package com.digimenu.service;
 import com.digimenu.dto.auth.AuthRegister;
 import com.digimenu.exception.DuplicateException;
 import com.digimenu.exception.NotFoundException;
-import com.digimenu.models.Role;
 import com.digimenu.models.User;
-import com.digimenu.repository.RoleRepository;
 import com.digimenu.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,9 +18,6 @@ public class AuthService {
     private UserRepository userRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     public User registerUser(AuthRegister authRegister) {
@@ -31,16 +26,13 @@ public class AuthService {
                     throw new DuplicateException("Email or CPF already registered");
                 });
 
-        Role adminRole = roleRepository.findByName("ADMIN");
-
-        User user = new User(
-                authRegister.getName(),
-                authRegister.getEmail(),
-                authRegister.getCpf(),
-                authRegister.getPhone(),
-                passwordEncoder.encode(authRegister.getPassword()),
-                adminRole
-        );
+        User user = User.builder()
+                .name(authRegister.getName())
+                .email(authRegister.getEmail())
+                .cpf(authRegister.getCpf())
+                .phone(authRegister.getPhone())
+                .password(passwordEncoder.encode(authRegister.getPassword()))
+                .build();
 
         userRepository.save(user);
 

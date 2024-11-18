@@ -61,6 +61,13 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.OK).body(tokenDTO);
     }
 
+    @PostMapping("/login/anonymous")
+    public ResponseEntity<?> loginAnonymous() {
+        String jwt = jwtHelper.generateAnonymousToken();
+        TokenDTO tokenDTO = new TokenDTO(null, jwt, null);
+        return ResponseEntity.status(HttpStatus.OK).body(tokenDTO);
+    }
+
     @PostMapping("/register")
     public ResponseEntity<User> registerUser(@Valid @RequestBody AuthRegister authRegister) {
         User user = authService.registerUser(authRegister);

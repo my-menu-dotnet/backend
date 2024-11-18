@@ -24,7 +24,7 @@ public class FileStorageService {
     @Autowired
     private FileStorageRepository fileStorageRepository;
 
-    private static final String UPLOAD_DIR = "src/main/resources/static/images/";
+    public static final String UPLOAD_DIR = "src/main/resources/static/images/";
 
     public FileStorage saveFile(MultipartFile file) {
         if (file.isEmpty()) {
@@ -46,7 +46,7 @@ public class FileStorageService {
 
             file.transferTo(path);
 
-            return createFile(
+            return fileStorageRepository.save(
                     FileStorage.builder()
                             .fileName(fileName)
                             .fileType(file.getContentType())
@@ -56,18 +56,5 @@ public class FileStorageService {
         } catch (IOException e) {
             throw new InternalErrorException("Failed to save file");
         }
-    }
-
-    public byte[] findBytesByImageName(String imageName) {
-        try {
-            Path path = Paths.get(UPLOAD_DIR + imageName);
-            return Files.readAllBytes(path);
-        } catch (IOException e) {
-            throw new NotFoundException("File not found");
-        }
-    }
-
-    public FileStorage createFile(FileStorage fileStorage) {
-        return fileStorageRepository.save(fileStorage);
     }
 }

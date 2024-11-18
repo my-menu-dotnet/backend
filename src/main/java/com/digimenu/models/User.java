@@ -6,9 +6,7 @@ import com.digimenu.constraints.Phone;
 import com.digimenu.enums.UserRole;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -21,6 +19,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User implements UserDetails {
 
     @Id
@@ -47,7 +47,11 @@ public class User implements UserDetails {
     @JsonIgnore
     private String password;
 
-    @ManyToMany
+    @OneToOne
+    @JoinColumn(name = "address_id", referencedColumnName = "id")
+    private Address address;
+
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_company",
             joinColumns = @JoinColumn(name = "user_id"),
@@ -56,7 +60,7 @@ public class User implements UserDetails {
     @JsonIgnore
     private List<Company> companies;
 
-    public User(String name, String email, String cpf, String phone, String password, Role role) {
+    public User(String name, String email, String cpf, String phone, String password) {
         this.name = name;
         this.email = email;
         this.cpf = cpf;
@@ -67,8 +71,8 @@ public class User implements UserDetails {
     @Override
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (this.companies.isEmpty()) {
-            return List.of();
+        if (this.companies == null || this.companies.isEmpty()) {
+            return List.of(new Role());
         }
         return List.of(new Role(UserRole.ADMIN));
     }

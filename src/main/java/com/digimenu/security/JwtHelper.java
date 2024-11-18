@@ -18,6 +18,8 @@ import java.util.function.Function;
 @Component
 public class JwtHelper extends RefreshTokenHelper {
 
+    public final String ANONYMOUS = "anonymous";
+
     @Value("${jwt.secret}")
     private String SECRET;
 
@@ -34,6 +36,12 @@ public class JwtHelper extends RefreshTokenHelper {
         return extractClaim(token, Claims::getSubject);
     }
 
+    public String extractEmail() {
+        String authorizationHeaderValue = request.getHeader("Authorization");
+        String token = authorizationHeaderValue.substring(7);
+        return extractEmail(token);
+    }
+
     public User extractUser() {
         String authorizationHeaderValue = request.getHeader("Authorization");
         String token = authorizationHeaderValue.substring(7);
@@ -45,6 +53,8 @@ public class JwtHelper extends RefreshTokenHelper {
     public String generateUserToken(User user) {
         return createToken(user);
     }
+
+    public String generateAnonymousToken() { return createToken(User.builder().email(ANONYMOUS).build()); }
 
     public Boolean validateToken(String token, String username) {
         final String extractedUsername = extractEmail(token);

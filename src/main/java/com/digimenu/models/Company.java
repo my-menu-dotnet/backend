@@ -4,6 +4,7 @@ import com.digimenu.enums.CompanyStatus;
 import com.digimenu.interfaces.Timestamped;
 import com.digimenu.listeners.TimestampedListener;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -49,13 +50,35 @@ public class Company implements Timestamped {
     @OneToOne
     private FileStorage image;
 
+    @Column(name = "delivery")
+    private Boolean delivery;
+
+    @Column(name = "delivery_price")
+    @JsonProperty("delivery_price")
+    private Double deliveryPrice;
+
+    @Column(name = "delivery_radius")
+    @JsonProperty("delivery_radius")
+    private Integer deliveryRadius;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "address_id", referencedColumnName = "id")
+    private Address address;
+
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private CompanyStatus status;
 
     @Column(name = "created_at")
+    @JsonProperty("created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
+    @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void addStatus() {
+        this.status = CompanyStatus.ACTIVE;
+    }
 }

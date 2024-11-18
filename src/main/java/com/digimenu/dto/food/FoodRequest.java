@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class FoodCreate {
+public class FoodRequest {
 
     @FullName
     String name;

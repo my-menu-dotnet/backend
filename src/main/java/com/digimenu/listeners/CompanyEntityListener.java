@@ -6,11 +6,13 @@ import com.digimenu.security.JwtHelper;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CompanyEntityListener {
 
+    @Lazy
     @Autowired
     private JwtHelper jwtHelper;
 

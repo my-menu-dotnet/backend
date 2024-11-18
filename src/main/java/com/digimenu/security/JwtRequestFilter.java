@@ -40,18 +40,30 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            User user = userService.loadUserByEmail(email);
-
-            if (jwtUtil.validateToken(jwt, email)) {
-
-                UsernamePasswordAuthenticationToken emailPasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(user,
+            if (email.equals(jwtUtil.ANONYMOUS)) {
+                User anonymous = User.builder().email(jwtUtil.ANONYMOUS).build();
+                UsernamePasswordAuthenticationToken anonymousAuthenticationToken = new UsernamePasswordAuthenticationToken(anonymous,
                         null,
-                        user.getAuthorities());
+                        anonymous.getAuthorities());
 
-                emailPasswordAuthenticationToken
+                anonymousAuthenticationToken
                         .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContextHolder.getContext().setAuthentication(emailPasswordAuthenticationToken);
+                SecurityContextHolder.getContext().setAuthentication(anonymousAuthenticationToken);
+            } else {
+                User user = userService.loadUserByEmail(email);
+
+                if (jwtUtil.validateToken(jwt, email)) {
+
+                    UsernamePasswordAuthenticationToken emailPasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(user,
+                            null,
+                            user.getAuthorities());
+
+                    emailPasswordAuthenticationToken
+                            .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    SecurityContextHolder.getContext().setAuthentication(emailPasswordAuthenticationToken);
+                }
             }
         }
         chain.doFilter(request, response);

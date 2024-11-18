@@ -39,10 +39,11 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers("/auth/login").permitAll()
+                        .requestMatchers("/auth/login/anonymous").permitAll()
                         .requestMatchers("/auth/register").permitAll()
                         .requestMatchers("/auth/register/newCompany").permitAll()
                         .requestMatchers("/auth/refresh-token").permitAll()
-                        .requestMatchers("/file/images/**").permitAll()
+                        .requestMatchers("/file/**").permitAll()
                         .anyRequest().authenticated())
                 .authenticationManager(authenticationManager)
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)

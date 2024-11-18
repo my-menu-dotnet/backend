@@ -16,7 +16,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CompanyCreate {
+public class CompanyRequest {
 
     @NotBlank
     private String name;
@@ -36,6 +36,7 @@ public class CompanyCreate {
     private List<UUID> categories;
 
     @JsonProperty("image_id")
-    @NotBlank
     private UUID imageId;
+
+    private AddressRequest address;
 }

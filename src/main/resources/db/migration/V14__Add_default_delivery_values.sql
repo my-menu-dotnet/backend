@@ -1,0 +1,4 @@
+ALTER TABLE company
+    ALTER COLUMN delivery SET DEFAULT FALSE,
+    ALTER COLUMN delivery_price SET DEFAULT 0.0,
+    ALTER COLUMN delivery_radius SET DEFAULT 0;

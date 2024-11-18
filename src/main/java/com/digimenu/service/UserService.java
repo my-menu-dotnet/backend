@@ -21,6 +21,6 @@ public class UserService implements UserDetailsService {
 
     public User loadUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElse(null);
     }
 }

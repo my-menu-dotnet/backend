@@ -1,5 +1,6 @@
 package com.digimenu.security;
 
+import com.digimenu.exception.NotFoundException;
 import com.digimenu.models.User;
 import com.digimenu.service.UserService;
 import io.jsonwebtoken.Claims;
@@ -24,7 +25,7 @@ public class JwtHelper extends RefreshTokenHelper {
     private String SECRET;
 
     @Value("${jwt.expiration}")
-    private int MINUTES;
+    public int ACCESS_EXPIRY_IN_SECONDS;
 
     @Autowired
     private UserService userService;
@@ -37,14 +38,12 @@ public class JwtHelper extends RefreshTokenHelper {
     }
 
     public String extractEmail() {
-        String authorizationHeaderValue = request.getHeader("Authorization");
-        String token = authorizationHeaderValue.substring(7);
+        String token = extractTokenFromCookie();
         return extractEmail(token);
     }
 
     public User extractUser() {
-        String authorizationHeaderValue = request.getHeader("Authorization");
-        String token = authorizationHeaderValue.substring(7);
+        String token = extractTokenFromCookie();
         Claims claims = extractAllClaims(token);
         String email = claims.getSubject();
         return userService.loadUserByEmail(email);
@@ -74,12 +73,23 @@ public class JwtHelper extends RefreshTokenHelper {
         return extractClaim(token, Claims::getExpiration).before(new Date());
     }
 
+    private String extractTokenFromCookie() {
+        if (request.getCookies() != null) {
+            for (var cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        throw new NotFoundException("Token not found");
+    }
+
     private String createToken(User user) {
         var now = Instant.now();
         return Jwts.builder()
                 .setSubject(user.getEmail())
                 .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(now.plus(MINUTES, ChronoUnit.MINUTES)))
+                .setExpiration(Date.from(now.plus(ACCESS_EXPIRY_IN_SECONDS, ChronoUnit.MINUTES)))
                 .signWith(SignatureAlgorithm.HS256, SECRET)
                 .compact();
     }

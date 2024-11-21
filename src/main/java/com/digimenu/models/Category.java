@@ -45,10 +45,8 @@ public class Category implements Timestamped {
     private CategoryStatus status;
 
     @Column(name = "created_at")
-    @JsonProperty("created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
 }

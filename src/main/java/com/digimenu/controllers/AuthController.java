@@ -1,10 +1,9 @@
 package com.digimenu.controllers;
 
-import com.digimenu.dto.TokenDTO;
 import com.digimenu.dto.auth.AuthLogin;
-import com.digimenu.dto.auth.AuthLoginCompany;
 import com.digimenu.dto.auth.AuthRegister;
 import com.digimenu.exception.InternalErrorException;
+import com.digimenu.exception.NotFoundException;
 import com.digimenu.models.RefreshToken;
 import com.digimenu.models.User;
 import com.digimenu.repository.RefreshTokenRepository;
@@ -13,13 +12,13 @@ import com.digimenu.security.JwtHelper;
 import com.digimenu.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
@@ -53,19 +52,18 @@ public class AuthController {
         final String jwt = jwtHelper.generateUserToken(user);
         final String refreshToken = jwtHelper.generateRefreshToken(user);
 
-        RefreshToken refreshTokenEntity = new RefreshToken(refreshToken, user);
-        refreshTokenRepository.save(refreshTokenEntity);
-
-        TokenDTO tokenDTO = new TokenDTO(user.getId(), jwt, refreshToken);
-
-        return ResponseEntity.status(HttpStatus.OK).body(tokenDTO);
+        return authService.getResponseEntity(user, jwt, refreshToken);
     }
 
     @PostMapping("/login/anonymous")
     public ResponseEntity<?> loginAnonymous() {
         String jwt = jwtHelper.generateAnonymousToken();
-        TokenDTO tokenDTO = new TokenDTO(null, jwt, null);
-        return ResponseEntity.status(HttpStatus.OK).body(tokenDTO);
+        ResponseCookie cookieAccessToken = authService.createAccessTokenCookie(jwt);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .header(HttpHeaders.SET_COOKIE, cookieAccessToken.toString())
+                .build();
     }
 
     @PostMapping("/register")
@@ -75,11 +73,10 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(@RequestBody TokenDTO body) {
-        String refreshToken = body.getRefreshToken();
+    public ResponseEntity<?> refreshToken(@CookieValue("refreshToken") String refreshToken) {
 
         RefreshToken refreshTokenEntity = refreshTokenRepository.findById(refreshToken)
-                .orElseThrow(() -> new InternalErrorException("Refresh token not found"));
+                .orElseThrow(() -> new NotFoundException("Refresh token not found"));
 
         refreshTokenRepository.delete(refreshTokenEntity);
 
@@ -90,11 +87,22 @@ public class AuthController {
         String jwt = jwtHelper.generateUserToken(user);
         String newRefreshToken = jwtHelper.generateRefreshToken(user);
 
-        RefreshToken newRefreshTokenEntity = new RefreshToken(newRefreshToken, user);
-        refreshTokenRepository.save(newRefreshTokenEntity);
+        return authService.getResponseEntity(user, jwt, newRefreshToken);
+    }
 
-        TokenDTO tokenDTO = new TokenDTO(user.getId(), jwt, newRefreshToken);
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@CookieValue("refreshToken") String refreshToken) {
+        RefreshToken refreshTokenEntity = refreshTokenRepository.findById(refreshToken)
+                .orElseThrow(() -> new NotFoundException("Refresh token not found"));
 
-        return ResponseEntity.status(HttpStatus.OK).body(tokenDTO);
+        refreshTokenRepository.delete(refreshTokenEntity);
+
+        ResponseCookie cookieRefreshToken = authService.createCookie("refreshToken", "", 0, "/auth/refresh-token");
+        ResponseCookie cookieAccessToken = authService.createCookie("accessToken", "", 0, "/");
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .header(HttpHeaders.SET_COOKIE, cookieRefreshToken.toString(), cookieAccessToken.toString())
+                .build();
     }
 }

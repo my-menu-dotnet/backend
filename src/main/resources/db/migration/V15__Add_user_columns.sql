@@ -1,0 +1,5 @@
+ALTER TABLE app_user
+    ADD COLUMN is_verified BOOLEAN DEFAULT FALSE,
+    ADD COLUMN is_active BOOLEAN DEFAULT TRUE,
+    ADD COLUMN last_password_reset TIMESTAMP,
+    ADD COLUMN last_login TIMESTAMP;

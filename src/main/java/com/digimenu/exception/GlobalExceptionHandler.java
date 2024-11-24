@@ -54,4 +54,10 @@ public class GlobalExceptionHandler {
         Error error = new Error(HttpStatus.FORBIDDEN.value(), e.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
+
+    @ExceptionHandler(AccessTokenExpiredException.class)
+    public ResponseEntity<Error> handleAccessTokenExpiredException(AccessTokenExpiredException e) {
+        Error error = new Error(HttpStatus.UNAUTHORIZED.value(), e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
 }

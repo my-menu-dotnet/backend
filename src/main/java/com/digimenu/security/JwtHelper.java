@@ -60,6 +60,10 @@ public class JwtHelper extends RefreshTokenHelper {
         return (extractedUsername.equals(username) && !isTokenExpired(token));
     }
 
+    public Boolean isTokenExpired(String token) {
+        return extractClaim(token, Claims::getExpiration).before(new Date());
+    }
+
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
@@ -67,10 +71,6 @@ public class JwtHelper extends RefreshTokenHelper {
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token).getBody();
-    }
-
-    private Boolean isTokenExpired(String token) {
-        return extractClaim(token, Claims::getExpiration).before(new Date());
     }
 
     private String extractTokenFromCookie() {

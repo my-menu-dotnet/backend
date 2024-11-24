@@ -1,10 +1,8 @@
 package com.digimenu.config;
 
-import com.digimenu.security.CustomAuthenticationEntryPoint;
 import com.digimenu.security.JwtRequestFilter;
 import com.digimenu.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,9 +32,6 @@ public class SecurityConfig {
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
 
-    @Autowired
-    private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-
     @Value("${cors.allowed.origins}")
     private String corsAllowedOrigins;
 
@@ -57,12 +52,11 @@ public class SecurityConfig {
                         .requestMatchers("/auth/register").permitAll()
                         .requestMatchers("/auth/register/newCompany").permitAll()
                         .requestMatchers("/auth/refresh-token").permitAll()
+                        .requestMatchers("/auth/logout").permitAll()
                         .requestMatchers("/file/**").permitAll()
                         .anyRequest().authenticated())
                 .authenticationManager(authenticationManager)
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(exceptionHandling -> exceptionHandling
-                        .authenticationEntryPoint(customAuthenticationEntryPoint))
                 .build();
     }
 

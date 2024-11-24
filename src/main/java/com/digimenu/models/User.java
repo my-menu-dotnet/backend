@@ -4,12 +4,15 @@ import com.digimenu.constraints.CPF;
 import com.digimenu.constraints.FullName;
 import com.digimenu.constraints.Phone;
 import com.digimenu.enums.UserRole;
+import com.digimenu.interfaces.Timestamped;
+import com.digimenu.listeners.TimestampedListener;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -21,7 +24,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User implements UserDetails {
+@EntityListeners({TimestampedListener.class})
+public class User implements UserDetails, Timestamped {
 
     @Id
     @Column(name = "id")
@@ -57,8 +61,29 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "company_id")
     )
-    @JsonIgnore
     private List<Company> companies;
+
+    @Column(name = "is_verified")
+    @JsonIgnore
+    private boolean isVerified;
+
+    @Column(name = "is_active")
+    @JsonIgnore
+    private boolean isActive;
+
+    @Column(name = "last_password_reset")
+    @JsonIgnore
+    private LocalDateTime lastPasswordReset;
+
+    @Column(name = "last_login")
+    @JsonIgnore
+    private LocalDateTime lastLogin;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     public User(String name, String email, String cpf, String phone, String password) {
         this.name = name;
@@ -104,6 +129,6 @@ public class User implements UserDetails {
     @Override
     @JsonIgnore
     public boolean isEnabled() {
-        return true;
+        return isActive;
     }
 }

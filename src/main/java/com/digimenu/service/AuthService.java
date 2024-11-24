@@ -2,7 +2,6 @@ package com.digimenu.service;
 
 import com.digimenu.dto.auth.AuthRegister;
 import com.digimenu.exception.DuplicateException;
-import com.digimenu.exception.NotFoundException;
 import com.digimenu.models.RefreshToken;
 import com.digimenu.models.User;
 import com.digimenu.repository.RefreshTokenRepository;
@@ -72,7 +71,7 @@ public class AuthService {
     }
 
     public ResponseCookie createRefreshTokenCookie(String refreshToken) {
-        return createCookie("refreshToken", refreshToken, jwtHelper.REFRESH_EXPIRY_IN_SECONDS, "/auth/refresh-token");
+        return createCookie("refreshToken", refreshToken, jwtHelper.REFRESH_EXPIRY_IN_SECONDS, "/auth");
     }
 
     public ResponseCookie createCookie(String name, String value, int maxAge, String path) {

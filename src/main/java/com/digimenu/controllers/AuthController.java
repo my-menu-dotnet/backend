@@ -91,18 +91,25 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@CookieValue("refreshToken") String refreshToken) {
-        RefreshToken refreshTokenEntity = refreshTokenRepository.findById(refreshToken)
-                .orElseThrow(() -> new NotFoundException("Refresh token not found"));
+    public ResponseEntity<?> logout(@CookieValue(value = "refreshToken", defaultValue = "null") String refreshToken) {
+        if (refreshToken.equals("null")) {
+            return ResponseEntity.status(HttpStatus.OK).build();
+        }
 
-        refreshTokenRepository.delete(refreshTokenEntity);
+        refreshTokenRepository.findById(refreshToken)
+                .ifPresent(refreshTokenEntity -> refreshTokenRepository.delete(refreshTokenEntity));
 
-        ResponseCookie cookieRefreshToken = authService.createCookie("refreshToken", "", 0, "/auth/refresh-token");
+        ResponseCookie cookieRefreshToken = authService.createCookie("refreshToken", "", 0, "/auth");
         ResponseCookie cookieAccessToken = authService.createCookie("accessToken", "", 0, "/");
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.SET_COOKIE, cookieRefreshToken.toString(), cookieAccessToken.toString())
                 .build();
+    }
+
+    @GetMapping("/check")
+    public ResponseEntity<?> check() {
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

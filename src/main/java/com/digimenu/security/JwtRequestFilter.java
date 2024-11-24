@@ -1,5 +1,6 @@
 package com.digimenu.security;
 
+import com.digimenu.exception.AccessTokenExpiredException;
 import com.digimenu.models.User;
 import com.digimenu.service.UserService;
 import jakarta.servlet.FilterChain;
@@ -23,14 +24,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private UserService userService;
 
     @Autowired
-    private JwtHelper jwtUtil;
+    private JwtHelper jwtHelper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                     HttpServletResponse response,
+                                    HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
-        final String authorizationHeader = request.getHeader("Authorization");
-
         String email = null;
         String jwt = null;
 
@@ -38,16 +37,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             for (Cookie cookie : request.getCookies()) {
                 if ("accessToken".equals(cookie.getName())) {
                     jwt = cookie.getValue();
-                    email = jwtUtil.extractEmail(jwt);
+                    email = jwtHelper.extractEmail(jwt);
                     break;
                 }
             }
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
-            if (email.equals(jwtUtil.ANONYMOUS)) {
-                User anonymous = User.builder().email(jwtUtil.ANONYMOUS).build();
+            if (email.equals(jwtHelper.ANONYMOUS)) {
+                User anonymous = User.builder().email(jwtHelper.ANONYMOUS).build();
                 UsernamePasswordAuthenticationToken anonymousAuthenticationToken = new UsernamePasswordAuthenticationToken(anonymous,
                         null,
                         anonymous.getAuthorities());
@@ -59,7 +57,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             } else {
                 User user = userService.loadUserByEmail(email);
 
-                if (jwtUtil.validateToken(jwt, email)) {
+                if (jwtHelper.validateToken(jwt, email)) {
 
                     UsernamePasswordAuthenticationToken emailPasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(user,
                             null,

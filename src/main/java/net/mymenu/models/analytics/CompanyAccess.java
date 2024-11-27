@@ -1,23 +1,32 @@
 package net.mymenu.models.analytics;
 
+import lombok.*;
 import net.mymenu.enums.analytics.AccessWays;
 import net.mymenu.enums.analytics.ContactWays;
 import net.mymenu.models.Company;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Table(name = "analytic_company_access")
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class CompanyAccess {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(name = "id")
     private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "company_id", referencedColumnName = "id")
-    private Company company;
+    @Column(name = "company_id")
+    private UUID companyId;
+
+    @Column(name = "ip")
+    private String ip;
 
     @Column(name = "user_agent")
     private String userAgent;
@@ -44,4 +53,9 @@ public class CompanyAccess {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

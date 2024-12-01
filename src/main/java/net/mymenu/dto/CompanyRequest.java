@@ -21,7 +21,6 @@ public class CompanyRequest {
     @NotBlank
     private String name;
 
-    @NotBlank
     private String cnpj;
 
     @NotBlank

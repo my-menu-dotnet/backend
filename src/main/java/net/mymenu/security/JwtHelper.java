@@ -44,6 +44,11 @@ public class JwtHelper extends RefreshTokenHelper {
 
     public User extractUser() {
         String token = extractTokenFromCookie();
+
+        if (token == null) {
+            throw new SecurityException("Token not found");
+        }
+
         Claims claims = extractAllClaims(token);
         String email = claims.getSubject();
         return userService.loadUserByEmail(email);
@@ -53,11 +58,13 @@ public class JwtHelper extends RefreshTokenHelper {
         return createToken(user);
     }
 
-    public String generateAnonymousToken() { return createToken(User.builder().email(ANONYMOUS).build()); }
+    public String generateAnonymousToken() {
+        return createToken(User.builder().email(ANONYMOUS).build());
+    }
 
-    public Boolean validateToken(String token, String username) {
+    public Boolean validateToken(String token, String email) {
         final String extractedUsername = extractEmail(token);
-        return (extractedUsername.equals(username) && !isTokenExpired(token));
+        return (extractedUsername.equals(email) && !isTokenExpired(token));
     }
 
     public Boolean isTokenExpired(String token) {

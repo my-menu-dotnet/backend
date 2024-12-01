@@ -1,5 +1,6 @@
 package net.mymenu.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,9 +29,15 @@ public class FileStorage {
     @Column(name = "size")
     private long size;
 
+    @JsonIgnore
+    @Transient
+    @Setter
+    public static String fileUrl;
+
+    @Transient
     private String url;
 
     public String getUrl() {
-        return "http://192.168.0.82:8080/file/" + id;
+        return fileUrl + id;
     }
 }

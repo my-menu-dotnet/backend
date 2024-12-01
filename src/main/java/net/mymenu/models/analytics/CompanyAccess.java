@@ -19,7 +19,7 @@ import java.util.UUID;
 public class CompanyAccess {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(name = "id")
+    @Column(name = "id", unique = true)
     private Integer id;
 
     @Column(name = "company_id")

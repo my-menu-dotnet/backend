@@ -43,32 +43,34 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if (email.equals(jwtHelper.ANONYMOUS)) {
-                User anonymous = User.builder().email(jwtHelper.ANONYMOUS).build();
-                UsernamePasswordAuthenticationToken anonymousAuthenticationToken = new UsernamePasswordAuthenticationToken(anonymous,
-                        null,
-                        anonymous.getAuthorities());
+            User user;
 
-                anonymousAuthenticationToken
+            if (email.equals(jwtHelper.ANONYMOUS)) {
+                user = createGuestUser();
+            } else {
+                user = userService.loadUserByEmail(email);
+            }
+
+            if (jwtHelper.validateToken(jwt, email) && user.isVerifiedEmail()) {
+                UsernamePasswordAuthenticationToken emailPasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(user,
+                        null,
+                        user.getAuthorities());
+
+                emailPasswordAuthenticationToken
                         .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContextHolder.getContext().setAuthentication(anonymousAuthenticationToken);
-            } else {
-                User user = userService.loadUserByEmail(email);
-
-                if (jwtHelper.validateToken(jwt, email)) {
-
-                    UsernamePasswordAuthenticationToken emailPasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(user,
-                            null,
-                            user.getAuthorities());
-
-                    emailPasswordAuthenticationToken
-                            .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                    SecurityContextHolder.getContext().setAuthentication(emailPasswordAuthenticationToken);
-                }
+                SecurityContextHolder.getContext().setAuthentication(emailPasswordAuthenticationToken);
             }
         }
         chain.doFilter(request, response);
+    }
+
+    private User createGuestUser() {
+        return User
+                .builder()
+                .email(jwtHelper.ANONYMOUS)
+                .isVerifiedEmail(true)
+                .isActive(true)
+                .build();
     }
 }

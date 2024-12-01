@@ -64,8 +64,7 @@ public class User implements UserDetails, Timestamped {
     private List<Company> companies;
 
     @Column(name = "is_verified")
-    @JsonIgnore
-    private boolean isVerified;
+    private boolean isVerifiedEmail;
 
     @Column(name = "is_active")
     @JsonIgnore

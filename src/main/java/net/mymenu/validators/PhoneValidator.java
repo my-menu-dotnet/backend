@@ -25,6 +25,9 @@ public class PhoneValidator implements ConstraintValidator<Phone, String> {
     }
 
     public static boolean isValid(String phone) {
-        return phone != null && phone.matches(PHONE_REGEX);
+        if (phone == null || phone.isEmpty()) {
+            return true;
+        }
+        return phone.matches(PHONE_REGEX);
     }
 }

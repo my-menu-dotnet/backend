@@ -48,6 +48,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers("/auth/login").permitAll()
+                        .requestMatchers("/auth/verify-email").permitAll()
+                        .requestMatchers("/auth/verify-email/send").permitAll()
                         .requestMatchers("/auth/login/anonymous").permitAll()
                         .requestMatchers("/auth/register").permitAll()
                         .requestMatchers("/auth/register/newCompany").permitAll()

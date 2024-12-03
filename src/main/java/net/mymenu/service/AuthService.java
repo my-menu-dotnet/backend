@@ -41,10 +41,10 @@ public class AuthService {
     private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
-    private JwtHelper jwtHelper;
+    private EmailCodeRepository emailCodeRepository;
 
     @Autowired
-    private EmailCodeRepository emailCodeRepository;
+    private CookieService cookieService;
 
     public User registerUser(AuthRegister authRegister) {
         userRepository.findByEmailOrCpf(authRegister.getEmail(), authRegister.getCpf())
@@ -70,8 +70,8 @@ public class AuthService {
         RefreshToken newRefreshTokenEntity = new RefreshToken(newRefreshToken, user);
         refreshTokenRepository.save(newRefreshTokenEntity);
 
-        ResponseCookie cookieRefreshToken = createRefreshTokenCookie(newRefreshToken);
-        ResponseCookie cookieAccessToken = createAccessTokenCookie(jwt);
+        ResponseCookie cookieRefreshToken = cookieService.createRefreshTokenCookie(newRefreshToken);
+        ResponseCookie cookieAccessToken = cookieService.createAccessTokenCookie(jwt);
 
         return ResponseEntity
                 .status(status)
@@ -81,24 +81,6 @@ public class AuthService {
 
     public ResponseEntity<User> getResponseEntity(User user, String jwt, String newRefreshToken) {
         return getResponseEntity(user, jwt, newRefreshToken, HttpStatus.OK);
-    }
-
-    public ResponseCookie createAccessTokenCookie(String jwt) {
-        return createCookie("accessToken", jwt, jwtHelper.ACCESS_EXPIRY_IN_SECONDS, "/");
-    }
-
-    public ResponseCookie createRefreshTokenCookie(String refreshToken) {
-        return createCookie("refreshToken", refreshToken, jwtHelper.REFRESH_EXPIRY_IN_SECONDS, "/auth");
-    }
-
-    public ResponseCookie createCookie(String name, String value, int maxAge, String path) {
-        return ResponseCookie.from(name, value)
-                .httpOnly(true)
-                .secure(true)
-                .path(path)
-                .sameSite("None")
-                .maxAge(maxAge)
-                .build();
     }
 
     public boolean validateEmailCode(User user, String code) {

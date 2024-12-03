@@ -2,10 +2,14 @@ package net.mymenu.exception;
 
 import net.mymenu.dto.Error;
 import jakarta.servlet.ServletException;
+import net.mymenu.service.AuthService;
+import net.mymenu.service.CookieService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -17,6 +21,9 @@ import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @Autowired
+    private CookieService cookieService;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
@@ -47,7 +54,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SecurityException.class)
     public ResponseEntity<Error> handleSecurityException(SecurityException e) {
         e.printStackTrace();
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+
+        ResponseCookie cookieRefreshToken = cookieService.createCookie("refreshToken", "", 0, "/auth");
+        ResponseCookie cookieAccessToken = cookieService.createCookie("accessToken", "", 0, "/");
+
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .header(HttpHeaders.SET_COOKIE, cookieRefreshToken.toString(), cookieAccessToken.toString())
+                .build();
     }
 
     @ExceptionHandler(AccessTokenExpiredException.class)

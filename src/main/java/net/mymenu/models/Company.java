@@ -64,6 +64,14 @@ public class Company implements Timestamped {
     @JoinColumn(name = "address_id", referencedColumnName = "id")
     private Address address;
 
+    @ManyToMany
+    @JoinTable(
+            name = "company_allowed_field",
+            joinColumns = @JoinColumn(name = "company_id"),
+            inverseJoinColumns = @JoinColumn(name = "allowed_field_id")
+    )
+    private List<AllowedField> allowedFields;
+
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private CompanyStatus status;

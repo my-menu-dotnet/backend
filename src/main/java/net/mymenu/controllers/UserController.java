@@ -16,7 +16,7 @@ public class UserController {
     @Autowired
     private JwtHelper jwtHelper;
 
-    @GetMapping
+    @GetMapping("/me")
     public ResponseEntity<User> getUserByToken() {
         User user = jwtHelper.extractUser();
         return ResponseEntity.status(HttpStatus.OK).body(user);

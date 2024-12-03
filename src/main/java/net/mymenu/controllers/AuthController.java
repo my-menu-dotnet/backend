@@ -16,6 +16,7 @@ import net.mymenu.repository.auth.EmailCodeRepository;
 import net.mymenu.security.JwtHelper;
 import net.mymenu.service.AuthService;
 import jakarta.validation.Valid;
+import net.mymenu.service.CookieService;
 import net.mymenu.service.EmailSenderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -56,6 +57,9 @@ public class AuthController {
     @Autowired
     private EmailCodeRepository emailCodeRepository;
 
+    @Autowired
+    private CookieService cookieService;
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody AuthLogin authLogin) {
         authenticationManager.authenticate(
@@ -87,7 +91,6 @@ public class AuthController {
 
     @PostMapping("/verify-email/send")
     public ResponseEntity<?> sendEmailCode() {
-        System.out.println("AQui 1");
         User user = jwtHelper.extractUser();
 
         if (user.isVerifiedEmail()) {
@@ -105,23 +108,17 @@ public class AuthController {
             throw new EmailCodeRequestTooSoonException("Wait until 5 minutes to send other code");
         }
 
-        System.out.println("AQui");
-
         EmailCode emailCode = authService.createEmailCode(user);
-
-        System.out.println("AQui 2");
 
         Context context = new Context();
         context.setVariable("nome", user.getName().split(" ")[0]);
         context.setVariable("code", emailCode.getCode());
 
         emailSenderService.sendEmail(
-                "thiago@my-menu.net",
+                user.getEmail(),
                 "MyMenu - Verifique sua conta",
                 "email-verification",
                 context);
-
-        System.out.println("AQui 3");
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -130,7 +127,7 @@ public class AuthController {
     @Deprecated
     public ResponseEntity<?> loginAnonymous() {
         String jwt = jwtHelper.generateAnonymousToken();
-        ResponseCookie cookieAccessToken = authService.createAccessTokenCookie(jwt);
+        ResponseCookie cookieAccessToken = cookieService.createAccessTokenCookie(jwt);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -151,19 +148,23 @@ public class AuthController {
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(@CookieValue("refreshToken") String refreshToken) {
 
-        RefreshToken refreshTokenEntity = refreshTokenRepository.findById(refreshToken)
-                .orElseThrow(() -> new NotFoundException("Refresh token not found"));
+        try {
+            RefreshToken refreshTokenEntity = refreshTokenRepository.findById(refreshToken)
+                    .orElseThrow(() -> new NotFoundException("Refresh token not found"));
 
-        refreshTokenRepository.delete(refreshTokenEntity);
+            refreshTokenRepository.delete(refreshTokenEntity);
 
-        String email = jwtHelper.extractRefreshTokenEmail(refreshToken);
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new InternalErrorException("User not found"));
+            String email = jwtHelper.extractRefreshTokenEmail(refreshToken);
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new InternalErrorException("User not found"));
 
-        String jwt = jwtHelper.generateUserToken(user);
-        String newRefreshToken = jwtHelper.generateRefreshToken(user);
+            String jwt = jwtHelper.generateUserToken(user);
+            String newRefreshToken = jwtHelper.generateRefreshToken(user);
 
-        return authService.getResponseEntity(user, jwt, newRefreshToken);
+            return authService.getResponseEntity(user, jwt, newRefreshToken);
+        } catch (AccountStatusException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
     }
 
     @PostMapping("/logout")
@@ -175,8 +176,8 @@ public class AuthController {
         refreshTokenRepository.findById(refreshToken)
                 .ifPresent(refreshTokenEntity -> refreshTokenRepository.delete(refreshTokenEntity));
 
-        ResponseCookie cookieRefreshToken = authService.createCookie("refreshToken", "", 0, "/auth");
-        ResponseCookie cookieAccessToken = authService.createCookie("accessToken", "", 0, "/");
+        ResponseCookie cookieRefreshToken = cookieService.createCookie("refreshToken", "", 0, "/auth");
+        ResponseCookie cookieAccessToken = cookieService.createCookie("accessToken", "", 0, "/");
 
         return ResponseEntity
                 .status(HttpStatus.OK)

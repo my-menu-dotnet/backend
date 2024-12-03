@@ -4,16 +4,11 @@ ALTER TABLE analytic_company_access
 ALTER TABLE app_user
     DROP CONSTRAINT fk_user_role;
 
-ALTER TABLE company_access
-    DROP CONSTRAINT fki0e0l4gykaqhau22sif8dl3ho;
-
 ALTER TABLE app_user
     ADD CONSTRAINT uc_app_user_address UNIQUE (address_id);
 
 ALTER TABLE company
     ADD CONSTRAINT uc_company_address UNIQUE (address_id);
-
-DROP TABLE company_access CASCADE;
 
 DROP TABLE role CASCADE;
 
@@ -31,11 +26,6 @@ ALTER TABLE category
 
 ALTER TABLE app_user
     DROP COLUMN role_id;
-
-ALTER TABLE file_storage
-    DROP COLUMN upload_dir;
-
-DROP SEQUENCE company_access_seq CASCADE;
 
 ALTER TABLE app_user
     ALTER COLUMN cpf DROP NOT NULL;

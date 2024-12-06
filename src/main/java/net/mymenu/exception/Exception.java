@@ -2,13 +2,12 @@ package net.mymenu.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class DuplicateException extends Exception {
-    public DuplicateException(String message) {
+public abstract class Exception extends RuntimeException {
+    public Exception(String message) {
         super(message);
     }
 
-    @Override
     public HttpStatus getHttpStatus() {
-        return HttpStatus.CONFLICT;
+        return HttpStatus.BAD_REQUEST;
     }
 }

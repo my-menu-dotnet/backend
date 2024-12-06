@@ -1,7 +1,14 @@
 package net.mymenu.exception;
 
-public class AccountAlreadyVerifiedException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class AccountAlreadyVerifiedException extends Exception {
     public AccountAlreadyVerifiedException(String message) {
         super(message);
+    }
+
+    @Override
+    public HttpStatus getHttpStatus() {
+        return HttpStatus.CONFLICT;
     }
 }

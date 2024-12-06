@@ -5,7 +5,6 @@ import net.mymenu.dto.auth.AuthLogin;
 import net.mymenu.dto.auth.AuthRegister;
 import net.mymenu.exception.AccountAlreadyVerifiedException;
 import net.mymenu.exception.EmailCodeRequestTooSoonException;
-import net.mymenu.exception.InternalErrorException;
 import net.mymenu.exception.NotFoundException;
 import net.mymenu.models.RefreshToken;
 import net.mymenu.models.User;
@@ -67,7 +66,7 @@ public class AuthController {
         );
 
         final User user = userRepository.findByEmail(authLogin.getEmail())
-                .orElseThrow(() -> new InternalErrorException("User authenticated but not found"));
+                .orElseThrow(() -> new SecurityException("User authenticated but not found"));
 
         final String jwt = jwtHelper.generateUserToken(user);
         final String refreshToken = jwtHelper.generateRefreshToken(user);
@@ -104,8 +103,8 @@ public class AuthController {
 
         if (lastUserEmailCode != null
                 && !lastUserEmailCode.isEmpty()
-                && lastUserEmailCode.getFirst().getCreatedAt().plusMinutes(5).isAfter(now)) {
-            throw new EmailCodeRequestTooSoonException("Wait until 5 minutes to send other code");
+                && lastUserEmailCode.getFirst().getCreatedAt().plusMinutes(1).isAfter(now)) {
+            throw new EmailCodeRequestTooSoonException("Wait until 1 minute to send other code");
         }
 
         EmailCode emailCode = authService.createEmailCode(user);
@@ -147,7 +146,6 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(@CookieValue("refreshToken") String refreshToken) {
-
         try {
             RefreshToken refreshTokenEntity = refreshTokenRepository.findById(refreshToken)
                     .orElseThrow(() -> new NotFoundException("Refresh token not found"));
@@ -156,7 +154,7 @@ public class AuthController {
 
             String email = jwtHelper.extractRefreshTokenEmail(refreshToken);
             User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new InternalErrorException("User not found"));
+                    .orElseThrow(() -> new SecurityException("User not found"));
 
             String jwt = jwtHelper.generateUserToken(user);
             String newRefreshToken = jwtHelper.generateRefreshToken(user);

@@ -1,7 +1,7 @@
 package net.mymenu.exception;
 
-public class InternalErrorException extends RuntimeException {
-    public InternalErrorException(String message) {
-        super(message);
-    }
+public class InternalErrorException extends Error {
+  public InternalErrorException(String message) {
+    super(message);
+  }
 }

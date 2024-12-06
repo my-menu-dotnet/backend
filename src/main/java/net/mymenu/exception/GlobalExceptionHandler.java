@@ -1,8 +1,6 @@
 package net.mymenu.exception;
 
 import net.mymenu.dto.Error;
-import jakarta.servlet.ServletException;
-import net.mymenu.service.AuthService;
 import net.mymenu.service.CookieService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +9,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -27,18 +24,6 @@ public class GlobalExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(DuplicateException.class)
-    public ResponseEntity<Error> handleDuplicateException(DuplicateException e) {
-        Error error = new Error(HttpStatus.CONFLICT.value(), e.getMessage());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-    }
-
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<Error> handleNotFoundException(NotFoundException e) {
-        Error error = new Error(HttpStatus.NOT_FOUND.value(), e.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Error> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         Map<String, String> errors = e.getBindingResult()
@@ -46,7 +31,12 @@ public class GlobalExceptionHandler {
                 .stream()
                 .collect(HashMap::new, (m, v) -> m.put(v.getField(), v.getDefaultMessage()), HashMap::putAll);
 
-        Error error = new Error(HttpStatus.BAD_REQUEST.value(), "Validation error", errors);
+        Error error = Error
+                .builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message("Invalid request")
+                .data(errors)
+                .build();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
@@ -65,27 +55,30 @@ public class GlobalExceptionHandler {
                 .build();
     }
 
-    @ExceptionHandler(AccessTokenExpiredException.class)
-    public ResponseEntity<Error> handleAccessTokenExpiredException(AccessTokenExpiredException e) {
-        Error error = new Error(HttpStatus.UNAUTHORIZED.value(), e.getMessage());
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
-    }
+    @ExceptionHandler(InternalErrorException.class)
+    public ResponseEntity<Error> handleInternalErrorException(InternalErrorException e) {
+        LOGGER.error("Internal error", e);
 
-    @ExceptionHandler(EmailCodeExpiredException.class)
-    public ResponseEntity<Error> handleEmailCodeExpiredException(EmailCodeExpiredException e) {
-        Error error = new Error(HttpStatus.GONE.value(), e.getMessage());
-        return ResponseEntity.status(HttpStatus.GONE).body(error);
+        Error error = Error
+                .builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message("Invalid request")
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Error> handleException(Exception e) {
         LOGGER.error("Unexpected error", e);
-        String message = e.getMessage() != null ? e.getMessage() : "Unexpected error";
+
+        String message = e.getMessage() != null ? e.getMessage() : "Invalid request";
+        HttpStatus status = e.getHttpStatus();
+
         Error error = Error
                 .builder()
-                .status(HttpStatus.BAD_REQUEST.value())
+                .status(status.value())
                 .message(message)
                 .build();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return ResponseEntity.status(status).body(error);
     }
 }

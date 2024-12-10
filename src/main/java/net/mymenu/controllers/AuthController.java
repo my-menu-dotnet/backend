@@ -3,20 +3,17 @@ package net.mymenu.controllers;
 import net.mymenu.dto.auth.AuthVerifyEmail;
 import net.mymenu.dto.auth.AuthLogin;
 import net.mymenu.dto.auth.AuthRegister;
-import net.mymenu.exception.AccountAlreadyVerifiedException;
-import net.mymenu.exception.EmailCodeRequestTooSoonException;
+import net.mymenu.enums.auth.EmailCodeType;
 import net.mymenu.exception.NotFoundException;
-import net.mymenu.models.RefreshToken;
+import net.mymenu.models.auth.RefreshToken;
 import net.mymenu.models.User;
-import net.mymenu.models.auth.EmailCode;
-import net.mymenu.repository.RefreshTokenRepository;
+import net.mymenu.repository.auth.RefreshTokenRepository;
 import net.mymenu.repository.UserRepository;
-import net.mymenu.repository.auth.EmailCodeRepository;
 import net.mymenu.security.JwtHelper;
 import net.mymenu.service.AuthService;
 import jakarta.validation.Valid;
 import net.mymenu.service.CookieService;
-import net.mymenu.service.EmailSenderService;
+import net.mymenu.service.EmailCodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -26,10 +23,6 @@ import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
-import org.thymeleaf.context.Context;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequestMapping("/auth")
@@ -51,13 +44,10 @@ public class AuthController {
     private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
-    private EmailSenderService emailSenderService;
-
-    @Autowired
-    private EmailCodeRepository emailCodeRepository;
-
-    @Autowired
     private CookieService cookieService;
+
+    @Autowired
+    private EmailCodeService emailCodeService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody AuthLogin authLogin) {
@@ -78,47 +68,36 @@ public class AuthController {
     public ResponseEntity<?> verifyEmail(@Valid @RequestBody AuthVerifyEmail authVerifyEmail) {
         User user = jwtHelper.extractUser();
 
-        if (!authService.validateEmailCode(user, authVerifyEmail.getCode())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        switch (authVerifyEmail.getType()) {
+            case USER:
+                if (!emailCodeService.validateUserEmailCode(user, authVerifyEmail.getCode())) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+                }
+                user.setVerifiedEmail(true);
+                userRepository.save(user);
+                break;
+            case COMPANY:
+                if (!emailCodeService.validateCompanyEmailCode(user, authVerifyEmail.getCode())) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+                }
+                user.getCompanies().getFirst().setVerifiedEmail(true);
+                userRepository.save(user);
+                break;
+            default:
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-
-        user.setVerifiedEmail(true);
-        userRepository.save(user);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @PostMapping("/verify-email/send")
-    public ResponseEntity<?> sendEmailCode() {
-        User user = jwtHelper.extractUser();
-
-        if (user.isVerifiedEmail()) {
-            throw new AccountAlreadyVerifiedException("Your account is already verified");
+    public ResponseEntity<?> sendEmailCode(@RequestParam EmailCodeType type) {
+        if (type == EmailCodeType.USER) {
+            emailCodeService.sendUserEmail();
         }
-
-        List<EmailCode> lastUserEmailCode = emailCodeRepository.findByUserIdOrderByCreatedAtDesc(user.getId())
-                .orElse(null);
-
-        LocalDateTime now = LocalDateTime.now();
-
-        if (lastUserEmailCode != null
-                && !lastUserEmailCode.isEmpty()
-                && lastUserEmailCode.getFirst().getCreatedAt().plusMinutes(1).isAfter(now)) {
-            throw new EmailCodeRequestTooSoonException("Wait until 1 minute to send other code");
+        if (type == EmailCodeType.COMPANY) {
+            emailCodeService.sendCompanyEmail();
         }
-
-        EmailCode emailCode = authService.createEmailCode(user);
-
-        Context context = new Context();
-        context.setVariable("nome", user.getName().split(" ")[0]);
-        context.setVariable("code", emailCode.getCode());
-
-        emailSenderService.sendEmail(
-                user.getEmail(),
-                "MyMenu - Verifique sua conta",
-                "email-verification",
-                context);
-
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 

@@ -1,6 +1,7 @@
 package net.mymenu.dto.auth;
 
 import lombok.*;
+import net.mymenu.enums.auth.EmailCodeType;
 
 @Setter
 @Getter
@@ -8,4 +9,5 @@ import lombok.*;
 @NoArgsConstructor
 public class AuthVerifyEmail {
     private String code;
+    private EmailCodeType type;
 }

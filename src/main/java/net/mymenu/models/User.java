@@ -1,14 +1,13 @@
 package net.mymenu.models;
 
-import net.mymenu.constraints.CPF;
-import net.mymenu.constraints.FullName;
-import net.mymenu.constraints.Phone;
+import net.mymenu.constraints.*;
 import net.mymenu.enums.UserRole;
 import net.mymenu.interfaces.Timestamped;
 import net.mymenu.listeners.TimestampedListener;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -18,7 +17,11 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "app_user")
+@Table(name = "app_user", indexes = {
+        @Index(name = "idx_user_email", columnList = "email"),
+        @Index(name = "idx_user_cpf", columnList = "cpf"),
+        @Index(name = "idx_user_phone", columnList = "phone")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -37,6 +40,7 @@ public class User implements UserDetails, Timestamped {
     private String name;
 
     @Column(name = "email")
+    @Email
     private String email;
 
     @Column(name = "cpf")
@@ -49,6 +53,7 @@ public class User implements UserDetails, Timestamped {
 
     @Column(name = "password")
     @JsonIgnore
+    @Password
     private String password;
 
     @OneToOne
@@ -56,18 +61,15 @@ public class User implements UserDetails, Timestamped {
     private Address address;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_company",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "company_id")
-    )
     private List<Company> companies;
 
-    @Column(name = "is_verified")
+    @Column(name = "is_verified_email")
+    @ColumnDefault("false")
     private boolean isVerifiedEmail;
 
     @Column(name = "is_active")
     @JsonIgnore
+    @ColumnDefault("true")
     private boolean isActive;
 
     @Column(name = "last_password_reset")
@@ -129,5 +131,11 @@ public class User implements UserDetails, Timestamped {
     @JsonIgnore
     public boolean isEnabled() {
         return isActive;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        this.isActive = true;
+        this.isVerifiedEmail = false;
     }
 }

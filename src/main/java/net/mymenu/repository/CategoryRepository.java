@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface CategoryRepository extends JpaRepository<Category, UUID> {
     @Query("SELECT c FROM Category c WHERE c.id IN :categoryId")
     Optional<List<Category>> findAllByIdList(List<UUID> categoryId);
+
+    Optional<List<Category>> findAllByCompanyId(UUID companyId);
 }

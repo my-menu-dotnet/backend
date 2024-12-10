@@ -1,18 +1,25 @@
 package net.mymenu.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import net.mymenu.enums.CompanyStatus;
 import net.mymenu.interfaces.Timestamped;
 import net.mymenu.listeners.TimestampedListener;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "company")
+@Table(name = "company", indexes = {
+        @Index(name = "idx_company_name", columnList = "name"),
+        @Index(name = "idx_company_cnpj", columnList = "cnpj"),
+        @Index(name = "idx_company_email", columnList = "email"),
+        @Index(name = "idx_company_status", columnList = "status")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -38,19 +45,16 @@ public class Company implements Timestamped {
     @Column(name = "email")
     private String email;
 
-    @ManyToMany
-    @JoinTable(
-            name = "company_category",
-            joinColumns = @JoinColumn(name = "company_id"),
-            inverseJoinColumns = @JoinColumn(name = "category_id")
-    )
-    private List<Category> categories;
+    @Column(name = "is_verified_email")
+    @ColumnDefault("false")
+    private boolean isVerifiedEmail;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private FileStorage image;
 
-    @Column(name = "delivery")
-    private Boolean delivery;
+    @Column(name = "delivery", nullable = false)
+    @ColumnDefault("false")
+    private boolean delivery;
 
     @Column(name = "delivery_price")
     @JsonProperty("delivery_price")
@@ -64,16 +68,16 @@ public class Company implements Timestamped {
     @JoinColumn(name = "address_id", referencedColumnName = "id")
     private Address address;
 
+    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Category> categories;
+
     @ManyToMany
-    @JoinTable(
-            name = "company_allowed_field",
-            joinColumns = @JoinColumn(name = "company_id"),
-            inverseJoinColumns = @JoinColumn(name = "allowed_field_id")
-    )
-    private List<AllowedField> allowedFields;
+    private List<AllowedField> allowedField;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
+    @ColumnDefault("'ACTIVE'")
     private CompanyStatus status;
 
     @Column(name = "created_at")
@@ -85,7 +89,9 @@ public class Company implements Timestamped {
     private LocalDateTime updatedAt;
 
     @PrePersist
-    public void addStatus() {
+    public void prePersist() {
         this.status = CompanyStatus.ACTIVE;
+        this.delivery = false;
+        this.isVerifiedEmail = false;
     }
 }

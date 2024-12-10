@@ -5,8 +5,10 @@ import net.mymenu.interfaces.Timestamped;
 import net.mymenu.listeners.TimestampedListener;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -24,14 +26,18 @@ public class Category implements Timestamped {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "\"order\"")
+    @ColumnDefault("0")
+    private Integer order;
+
     @Column(name = "name")
     private String name;
 
-    @Column(name = "description")
-    private String description;
+    @ManyToOne(optional = false)
+    private Company company;
 
-    @ManyToOne
-    private FileStorage image;
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    private List<Food> foods;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
@@ -42,4 +48,11 @@ public class Category implements Timestamped {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.order == null) {
+            this.order = 0;
+        }
+    }
 }

@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
 
 
         return ResponseEntity
-                .status(HttpStatus.NO_CONTENT)
+                .status(HttpStatus.FORBIDDEN)
                 .header(HttpHeaders.SET_COOKIE, cookieRefreshToken.toString(), cookieAccessToken.toString())
                 .build();
     }

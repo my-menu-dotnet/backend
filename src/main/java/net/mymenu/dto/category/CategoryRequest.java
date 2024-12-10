@@ -16,12 +16,6 @@ public class CategoryRequest {
     @NotBlank
     private String name;
 
-    private String description;
-
-    @JsonProperty("image_id")
-    @Nullable
-    private UUID imageId;
-
     @NotBlank
     private CategoryStatus status;
 }

@@ -34,7 +34,7 @@ public abstract class RefreshTokenHelper {
         return Jwts.builder()
                 .setSubject(user.getEmail())
                 .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(now.plus(REFRESH_EXPIRY_IN_SECONDS, ChronoUnit.DAYS)))
+                .setExpiration(Date.from(now.plus(REFRESH_EXPIRY_IN_SECONDS, ChronoUnit.SECONDS)))
                 .signWith(SignatureAlgorithm.HS256, REFRESH_SECRET)
                 .compact();
     }

@@ -2,12 +2,17 @@ package net.mymenu.models.auth;
 
 import jakarta.persistence.*;
 import lombok.*;
+import net.mymenu.enums.auth.EmailCodeType;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "email_code")
+@Table(name = "email_code", indexes = {
+        @Index(name = "email_code_user_id_index", columnList = "user_id"),
+        @Index(name = "email_code_type_index", columnList = "type"),
+        @Index(name = "email_code_code_index", columnList = "code")
+})
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,6 +26,10 @@ public class EmailCode {
 
     @Column(name = "user_id")
     private UUID userId;
+
+    @Column(name = "type")
+    @Enumerated(EnumType.STRING)
+    private EmailCodeType type;
 
     @Column(name = "code")
     private String code;

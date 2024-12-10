@@ -45,8 +45,6 @@ public class MenuController {
                         .builder()
                         .id(entry.getKey().getId())
                         .name(entry.getKey().getName())
-                        .description(entry.getKey().getDescription())
-                        .image(entry.getKey().getImage())
                         .status(entry.getKey().getStatus())
                         .food(entry.getValue())
                         .build())

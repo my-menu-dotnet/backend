@@ -88,7 +88,7 @@ public class JwtHelper extends RefreshTokenHelper {
                 }
             }
         }
-        throw new NotFoundException("Token not found");
+        throw new SecurityException("Token not found");
     }
 
     private String createToken(User user) {
@@ -96,7 +96,7 @@ public class JwtHelper extends RefreshTokenHelper {
         return Jwts.builder()
                 .setSubject(user.getEmail())
                 .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(now.plus(ACCESS_EXPIRY_IN_SECONDS, ChronoUnit.MINUTES)))
+                .setExpiration(Date.from(now.plus(ACCESS_EXPIRY_IN_SECONDS, ChronoUnit.SECONDS)))
                 .signWith(SignatureAlgorithm.HS256, SECRET)
                 .compact();
     }

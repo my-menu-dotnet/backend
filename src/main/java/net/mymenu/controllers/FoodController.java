@@ -51,17 +51,11 @@ public class FoodController {
         return ResponseEntity.status(HttpStatus.OK).body(food);
     }
 
-    @PostMapping("/{companyId}")
+    @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Food> create(@RequestBody FoodRequest food, @PathVariable UUID companyId) {
+    public ResponseEntity<Food> create(@RequestBody FoodRequest food) {
         User user = jwtHelper.extractUser();
-
-        Company company = companyRepository.findById(companyId)
-                .orElseThrow(() -> new NotFoundException("Company not found"));
-
-        if (!user.getCompanies().contains(company)) {
-            throw new SecurityException("You are not allowed to create food for this company");
-        }
+        Company company = user.getCompanies().getFirst();
 
         FileStorage image = null;
         if (food.getImageId() != null) {

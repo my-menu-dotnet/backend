@@ -16,9 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/category")
@@ -115,5 +113,18 @@ public class CategoryController {
         categoryRepository.saveAll(categories);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @GetMapping("/select")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, String>> select() {
+        User user = jwtHelper.extractUser();
+
+        Company company = user.getCompanies().getFirst();
+
+        Map<String, String> categories = company.getCategories().parallelStream()
+                .collect(HashMap::new, (m, c) -> m.put(c.getId().toString(), c.getName()), Map::putAll);
+
+        return ResponseEntity.status(HttpStatus.OK).body(categories);
     }
 }

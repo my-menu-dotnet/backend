@@ -14,7 +14,6 @@ import java.util.UUID;
 @Setter
 public class FoodRequest {
 
-    @FullName
     String name;
 
     @Valid
@@ -33,9 +32,4 @@ public class FoodRequest {
     @NotBlank
     @JsonProperty("category_id")
     UUID categoryId;
-
-    @Valid
-    @NotBlank
-    @JsonProperty("company_id")
-    UUID companyId;
 }

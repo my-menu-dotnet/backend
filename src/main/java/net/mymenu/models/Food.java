@@ -1,13 +1,11 @@
 package net.mymenu.models;
 
+import com.fasterxml.jackson.annotation.*;
 import net.mymenu.enums.FoodStatus;
 import net.mymenu.interfaces.CompanyAware;
 import net.mymenu.interfaces.Timestamped;
 import net.mymenu.listeners.CompanyEntityListener;
 import net.mymenu.listeners.TimestampedListener;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -63,7 +61,7 @@ public class Food implements Timestamped, CompanyAware {
 
     @ManyToOne
     @JoinColumn(name = "category_id")
-    @JsonManagedReference
+    @JsonIgnoreProperties("foods")
     private Category category;
 
     @ManyToOne

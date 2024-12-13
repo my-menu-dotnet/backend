@@ -1,6 +1,7 @@
 package net.mymenu.service;
 
-import com.amazonaws.services.organizations.model.AccountOwnerNotVerifiedException;
+import com.sendgrid.helpers.mail.objects.Email;
+import com.sendgrid.helpers.mail.objects.Personalization;
 import net.mymenu.enums.auth.EmailCodeType;
 import net.mymenu.exception.*;
 import net.mymenu.models.Company;
@@ -9,8 +10,8 @@ import net.mymenu.models.auth.EmailCode;
 import net.mymenu.repository.auth.EmailCodeRepository;
 import net.mymenu.security.JwtHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.context.Context;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -31,6 +32,9 @@ public class EmailCodeService {
     @Autowired
     private JwtHelper jwtHelper;
 
+    @Value("${sendgrid.dynamic_template_id.code}")
+    private String codeTemplateId;
+
     public void sendUserEmail() {
         User user = jwtHelper.extractUser();
 
@@ -46,7 +50,7 @@ public class EmailCodeService {
         Company company = user.getCompanies().getFirst();
 
         if (!user.isVerifiedEmail()) {
-            throw new AccountOwnerNotVerifiedException("Your account is not verified");
+            throw new AccountNotVerifiedException("Your account is not verified");
         }
         if (company.isVerifiedEmail()) {
             throw new AccountAlreadyVerifiedException("Your company is already verified");
@@ -101,16 +105,13 @@ public class EmailCodeService {
         validateEmailCodeCooldown(user, type);
 
         EmailCode emailCode = createEmailCode(user, type);
+        Personalization personalization = new Personalization();
 
-        Context context = new Context();
-        context.setVariable("nome", user.getName().split(" ")[0]);
-        context.setVariable("code", emailCode.getCode());
+        personalization.addDynamicTemplateData("name", user.getName().split(" ")[0]);
+        personalization.addDynamicTemplateData("code", emailCode.getCode());
+        personalization.addTo(new Email(toEmail));
 
-        emailSenderService.sendEmail(
-                "thiago@my-menu.net",
-                "MyMenu - Verifique sua conta",
-                "email-verification",
-                context);
+        emailSenderService.sendEmail(personalization, codeTemplateId);
     }
 
     private EmailCode createEmailCode(User user, EmailCodeType type) {

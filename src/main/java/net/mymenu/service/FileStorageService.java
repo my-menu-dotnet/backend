@@ -1,6 +1,6 @@
 package net.mymenu.service;
 
-import com.amazonaws.services.fms.model.InternalErrorException;
+import net.mymenu.exception.InternalErrorException;
 import net.mymenu.exception.NotFoundException;
 import net.mymenu.models.FileStorage;
 import net.mymenu.repository.FileStorageRepository;

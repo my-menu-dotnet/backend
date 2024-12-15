@@ -1,5 +1,6 @@
 package net.mymenu.exception;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import net.mymenu.dto.Error;
 import net.mymenu.service.CookieService;
 import org.slf4j.Logger;
@@ -39,6 +40,19 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<Error> handleExpiredJwtException(ExpiredJwtException e) {
+        Error error = Error
+                .builder()
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .message("Expired token")
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(error);
     }
 
     @ExceptionHandler(SecurityException.class)

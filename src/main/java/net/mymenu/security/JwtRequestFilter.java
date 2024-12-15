@@ -1,29 +1,32 @@
 package net.mymenu.security;
 
+import net.mymenu.exception.AccountNotVerifiedException;
+import net.mymenu.exception.TokenExpiredException;
 import net.mymenu.models.User;
-import net.mymenu.service.AuthService;
 import net.mymenu.service.CookieService;
 import net.mymenu.service.UserService;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtRequestFilter.class);
 
     @Autowired
     private UserService userService;
@@ -34,23 +37,35 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private CookieService cookieService;
 
+    @Autowired
+    @Qualifier("handlerExceptionResolver")
+    private HandlerExceptionResolver resolver;
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain chain) throws ServletException, IOException {
+    protected void doFilterInternal(@NotNull HttpServletRequest request,
+                                    @NotNull HttpServletResponse response,
+                                    @NotNull FilterChain chain) {
+        String uri = request.getRequestURI();
+
         String email = null;
         String jwt = null;
 
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("accessToken".equals(cookie.getName())) {
-                    jwt = cookie.getValue();
-                    email = jwtHelper.extractEmail(jwt);
-                    break;
+        try {
+            if (uri.equals("/auth/refresh-token") || uri.equals("/auth/logout")) {
+                chain.doFilter(request, response);
+                return;
+            }
+
+            if (request.getCookies() != null) {
+                for (Cookie cookie : request.getCookies()) {
+                    if ("accessToken".equals(cookie.getName())) {
+                        jwt = cookie.getValue();
+                        email = jwtHelper.extractEmail(jwt);
+                        break;
+                    }
                 }
             }
-        }
-        try {
+
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 User user;
 
@@ -60,29 +75,29 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     user = userService.loadUserByEmail(email);
                 }
 
-                String uri = request.getRequestURI();
+                validateExpiredToken(jwt, email);
+                validateUserVerifiedEmail(user, uri);
 
-                if (validateToken(jwt, email, user, uri)) {
-                    UsernamePasswordAuthenticationToken emailPasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(user,
-                            null,
-                            user.getAuthorities());
+                UsernamePasswordAuthenticationToken emailPasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(user,
+                        null,
+                        user.getAuthorities());
 
-                    emailPasswordAuthenticationToken
-                            .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                emailPasswordAuthenticationToken
+                        .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                    SecurityContextHolder.getContext().setAuthentication(emailPasswordAuthenticationToken);
-                }
+                SecurityContextHolder.getContext().setAuthentication(emailPasswordAuthenticationToken);
             }
             chain.doFilter(request, response);
         } catch (Exception e) {
-            ResponseCookie cookieRefreshToken = cookieService.createCookie("refreshToken", "", 0, "/auth");
-            ResponseCookie cookieAccessToken = cookieService.createCookie("accessToken", "", 0, "/");
-
-            response.addHeader(HttpHeaders.SET_COOKIE, cookieRefreshToken.toString());
-            response.addHeader(HttpHeaders.SET_COOKIE, cookieAccessToken.toString());
-            response.setStatus(HttpStatus.FORBIDDEN.value());
+            logger.error("Error", e);
+            resolver.resolveException(request, response, null, e);
+//            ResponseCookie cookieRefreshToken = cookieService.createCookie("refreshToken", "", 0, "/auth");
+//            ResponseCookie cookieAccessToken = cookieService.createCookie("accessToken", "", 0, "/");
+//
+//            response.addHeader(HttpHeaders.SET_COOKIE, cookieRefreshToken.toString());
+//            response.addHeader(HttpHeaders.SET_COOKIE, cookieAccessToken.toString());
+//            response.setStatus(HttpStatus.FORBIDDEN.value());
         }
-
     }
 
     private User createGuestUser() {
@@ -94,7 +109,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 .build();
     }
 
-    private boolean validateToken(String jwt, String email, User user, String uri) {
-        return jwtHelper.validateToken(jwt, email) && (user.isVerifiedEmail() || uri.equals("/user/me"));
+    private void validateExpiredToken(String jwt, String email) {
+        if (!jwtHelper.validateToken(jwt, email)) {
+            throw new TokenExpiredException("Token expired");
+        }
+    }
+
+    private void validateUserVerifiedEmail(User user, String uri) {
+        if (!user.isVerifiedEmail() && !uri.equals("/user/me") && !uri.equals("/auth/verify-email/send")) {
+            throw new AccountNotVerifiedException("Account not verified");
+        }
     }
 }

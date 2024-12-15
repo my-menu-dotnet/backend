@@ -1,5 +1,6 @@
 package net.mymenu.dto;
 
+import jakarta.validation.Valid;
 import net.mymenu.constraints.Phone;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
@@ -37,5 +38,6 @@ public class CompanyRequest {
     @JsonProperty("image_id")
     private UUID imageId;
 
+    @Valid
     private AddressRequest address;
 }

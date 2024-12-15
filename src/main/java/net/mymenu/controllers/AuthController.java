@@ -64,6 +64,37 @@ public class AuthController {
         return authService.getResponseEntity(user, jwt, refreshToken);
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<User> registerUser(@Valid @RequestBody AuthRegister authRegister) {
+        User user = authService.registerUser(authRegister);
+
+        final String jwt = jwtHelper.generateUserToken(user);
+        final String refreshToken = jwtHelper.generateRefreshToken(user);
+
+        return authService.getResponseEntity(user, jwt, refreshToken, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@CookieValue("refreshToken") String refreshToken) {
+        try {
+            RefreshToken refreshTokenEntity = refreshTokenRepository.findById(refreshToken)
+                    .orElseThrow(() -> new NotFoundException("Refresh token not found"));
+
+            refreshTokenRepository.delete(refreshTokenEntity);
+
+            String email = jwtHelper.extractRefreshTokenEmail(refreshToken);
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new SecurityException("User not found"));
+
+            String jwt = jwtHelper.generateUserToken(user);
+            String newRefreshToken = jwtHelper.generateRefreshToken(user);
+
+            return authService.getResponseEntity(user, jwt, newRefreshToken);
+        } catch (AccountStatusException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+
     @PostMapping("/verify-email")
     public ResponseEntity<?> verifyEmail(@Valid @RequestBody AuthVerifyEmail authVerifyEmail) {
         User user = jwtHelper.extractUser();
@@ -111,37 +142,6 @@ public class AuthController {
                 .status(HttpStatus.OK)
                 .header(HttpHeaders.SET_COOKIE, cookieAccessToken.toString())
                 .build();
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@Valid @RequestBody AuthRegister authRegister) {
-        User user = authService.registerUser(authRegister);
-
-        final String jwt = jwtHelper.generateUserToken(user);
-        final String refreshToken = jwtHelper.generateRefreshToken(user);
-
-        return authService.getResponseEntity(user, jwt, refreshToken, HttpStatus.CREATED);
-    }
-
-    @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(@CookieValue("refreshToken") String refreshToken) {
-        try {
-            RefreshToken refreshTokenEntity = refreshTokenRepository.findById(refreshToken)
-                    .orElseThrow(() -> new NotFoundException("Refresh token not found"));
-
-            refreshTokenRepository.delete(refreshTokenEntity);
-
-            String email = jwtHelper.extractRefreshTokenEmail(refreshToken);
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new SecurityException("User not found"));
-
-            String jwt = jwtHelper.generateUserToken(user);
-            String newRefreshToken = jwtHelper.generateRefreshToken(user);
-
-            return authService.getResponseEntity(user, jwt, newRefreshToken);
-        } catch (AccountStatusException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
     }
 
     @PostMapping("/logout")

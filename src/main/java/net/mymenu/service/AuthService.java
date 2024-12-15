@@ -6,7 +6,6 @@ import net.mymenu.models.auth.RefreshToken;
 import net.mymenu.models.User;
 import net.mymenu.repository.auth.RefreshTokenRepository;
 import net.mymenu.repository.UserRepository;
-import net.mymenu.repository.auth.EmailCodeRepository;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -25,12 +24,8 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
-
-    @Autowired
-    private EmailCodeRepository emailCodeRepository;
 
     @Autowired
     private CookieService cookieService;

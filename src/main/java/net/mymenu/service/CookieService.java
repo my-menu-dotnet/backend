@@ -7,11 +7,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class CookieService {
+
     @Autowired
     private JwtHelper jwtHelper;
 
     public ResponseCookie createAccessTokenCookie(String jwt) {
-        return createCookie("accessToken", jwt, jwtHelper.ACCESS_EXPIRY_IN_SECONDS, "/");
+        return createCookie("accessToken", jwt, jwtHelper.REFRESH_EXPIRY_IN_SECONDS, "/");
     }
 
     public ResponseCookie createRefreshTokenCookie(String refreshToken) {

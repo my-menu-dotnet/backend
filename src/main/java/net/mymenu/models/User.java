@@ -133,6 +133,10 @@ public class User implements UserDetails, Timestamped {
         return isActive;
     }
 
+    public boolean isVerifiedEmail() {
+        return true;
+    }
+
     @PrePersist
     public void prePersist() {
         this.isActive = true;

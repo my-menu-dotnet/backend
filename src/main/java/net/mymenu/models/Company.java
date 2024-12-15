@@ -88,6 +88,10 @@ public class Company implements Timestamped {
     @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
 
+    public boolean isVerifiedEmail() {
+        return true;
+    }
+
     @PrePersist
     public void prePersist() {
         this.status = CompanyStatus.ACTIVE;

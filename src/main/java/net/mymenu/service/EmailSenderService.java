@@ -8,12 +8,16 @@ import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
 import com.sendgrid.helpers.mail.objects.Personalization;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
 public class EmailSenderService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EmailSenderService.class);
 
     @Value("${sendgrid.api.key}")
     private String sendGridApiKey;
@@ -42,9 +46,12 @@ public class EmailSenderService {
             request.setBody(mail.build());
 
             Response response = sg.api(request);
-            System.out.println(response.getStatusCode());
-            System.out.println(response.getBody());
-            System.out.println(response.getHeaders());
+
+            logger.info("Email sent to: " + personalization.getTos().get(0).getEmail());
+            logger.info("Email response: " + response.getStatusCode());
+            logger.info("Email response: " + response.getBody());
+            logger.info("Email response: " + response.getHeaders());
+
         } catch (Exception e) {
             e.printStackTrace();
         }

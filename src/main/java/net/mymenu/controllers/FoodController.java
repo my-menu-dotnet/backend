@@ -34,16 +34,7 @@ public class FoodController {
     private JwtHelper jwtHelper;
 
     @Autowired
-    private CompanyRepository companyRepository;
-
-    @Autowired
     private CategoryRepository categoryRepository;
-
-    @GetMapping
-    public ResponseEntity<Food[]> list() {
-        Food[] food = foodService.findAll();
-        return ResponseEntity.status(HttpStatus.OK).body(food);
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Food> find(@PathVariable UUID id) {
@@ -74,6 +65,11 @@ public class FoodController {
                 .image(image)
                 .company(company)
                 .category(category)
+                .glutenFree(food.isGlutenFree())
+                .lactoseFree(food.isLactoseFree())
+                .vegan(food.isVegan())
+                .vegetarian(food.isVegetarian())
+                .halal(food.isHalal())
                 .build();
 
         foodRepository.save(newFood);
@@ -81,12 +77,13 @@ public class FoodController {
         return ResponseEntity.status(HttpStatus.CREATED).body(newFood);
     }
 
-    @PutMapping("/{id}/{companyId}")
+    @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> update(@PathVariable UUID id, @PathVariable UUID companyId, @RequestBody FoodRequest food) {
+    public ResponseEntity<?> update(@PathVariable UUID id, @RequestBody FoodRequest food) {
         User user = jwtHelper.extractUser();
+        Company company = user.getCompanies().getFirst();
 
-        Food existingFood = foodRepository.findByIdAndCompanyId(id, companyId)
+        Food existingFood = foodRepository.findByIdAndCompanyId(id, company.getId())
                 .orElseThrow(() -> new NotFoundException("Food not found"));
 
         if (!user.getCompanies().contains(existingFood.getCompany())) {
@@ -95,8 +92,11 @@ public class FoodController {
 
         Category category = categoryRepository.findById(food.getCategoryId())
                 .orElseThrow(() -> new NotFoundException("Category not found"));
-        FileStorage image = fileStorageRepository.findById(food.getImageId())
-                .orElseThrow(() -> new NotFoundException("File not found"));
+        FileStorage image = existingFood.getImage();
+        if (food.getImageId() != null) {
+            image = fileStorageRepository.findById(food.getImageId())
+                    .orElseThrow(() -> new NotFoundException("File not found"));
+        }
 
         existingFood.setName(food.getName());
         existingFood.setDescription(food.getDescription());
@@ -104,6 +104,13 @@ public class FoodController {
         existingFood.setStatus(food.getStatus());
         existingFood.setImage(image);
         existingFood.setCategory(category);
+        existingFood.setLactoseFree(food.isLactoseFree());
+        existingFood.setGlutenFree(food.isGlutenFree());
+        existingFood.setVegan(food.isVegan());
+        existingFood.setVegetarian(food.isVegetarian());
+        existingFood.setHalal(food.isHalal());
+
+        foodRepository.saveAndFlush(existingFood);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

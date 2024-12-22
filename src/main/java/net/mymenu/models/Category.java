@@ -40,6 +40,7 @@ public class Category implements Timestamped {
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     @JsonIgnoreProperties("category")
+    @OrderBy("status ASC")
     private List<Food> foods;
 
     @Column(name = "status")

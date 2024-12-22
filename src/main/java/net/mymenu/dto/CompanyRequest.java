@@ -1,5 +1,6 @@
 package net.mymenu.dto;
 
+import jakarta.persistence.Column;
 import jakarta.validation.Valid;
 import net.mymenu.constraints.Phone;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,6 +25,9 @@ public class CompanyRequest {
 
     private String cnpj;
 
+    @JsonProperty("primary_color")
+    private String primaryColor;
+
     @NotBlank
     @Email
     private String email;
@@ -37,6 +41,9 @@ public class CompanyRequest {
 
     @JsonProperty("image_id")
     private UUID imageId;
+
+    @JsonProperty("header_id")
+    private UUID headerId;
 
     @Valid
     private AddressRequest address;

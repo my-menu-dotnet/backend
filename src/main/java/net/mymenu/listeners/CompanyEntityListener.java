@@ -19,9 +19,14 @@ public class CompanyEntityListener {
     @PrePersist
     @PreUpdate
     public void validateCompanyId(CompanyAware entity) {
-        User user = jwtHelper.extractUser();
+        try {
+            User user = jwtHelper.extractUser();
 
-        if (entity.getCompany() == null && !isCompanyOwner(user, entity)) {
+            if (entity.getCompany() == null && !isCompanyOwner(user, entity)) {
+                throw new SecurityException("Company id does not match to the token");
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
             throw new SecurityException("Company id does not match to the token");
         }
     }

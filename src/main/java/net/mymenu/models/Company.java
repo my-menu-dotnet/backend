@@ -36,6 +36,9 @@ public class Company implements Timestamped {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "description")
+    private String description;
+
     @Column(name = "cnpj")
     private String cnpj;
 
@@ -45,12 +48,21 @@ public class Company implements Timestamped {
     @Column(name = "email")
     private String email;
 
+    @Column(name = "url")
+    private String url;
+
+    @Column(name = "primary_color")
+    private String primaryColor;
+
     @Column(name = "is_verified_email")
     @ColumnDefault("false")
     private boolean isVerifiedEmail;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private FileStorage image;
+
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private FileStorage header;
 
     @Column(name = "delivery", nullable = false)
     @ColumnDefault("false")
@@ -70,6 +82,7 @@ public class Company implements Timestamped {
 
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
+    @OrderBy("order ASC")
     private List<Category> categories;
 
     @ManyToMany

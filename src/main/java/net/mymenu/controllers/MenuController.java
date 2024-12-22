@@ -2,9 +2,12 @@ package net.mymenu.controllers;
 
 import net.mymenu.dto.menu.MenuCategoryDTO;
 import net.mymenu.dto.menu.MenuDTO;
+import net.mymenu.exception.Exception;
 import net.mymenu.exception.NotFoundException;
+import net.mymenu.models.Category;
 import net.mymenu.models.Company;
 import net.mymenu.models.Food;
+import net.mymenu.repository.CategoryRepository;
 import net.mymenu.repository.CompanyRepository;
 import net.mymenu.repository.FoodRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,28 +30,22 @@ public class MenuController {
     private CompanyRepository companyRepository;
 
     @Autowired
-    private FoodRepository foodRepository;
+    private CategoryRepository categoryRepository;
 
     @GetMapping("/{companyId}")
-    public ResponseEntity<MenuDTO> searchByCompanyId(@PathVariable UUID companyId) {
-        Company company = companyRepository.findById(companyId)
+    public ResponseEntity<MenuDTO> searchByCompanyId(@PathVariable String companyId) {
+        UUID id = null;
+
+        try {
+            id = UUID.fromString(companyId);
+        } catch (IllegalArgumentException _) {
+        }
+
+        Company company = companyRepository.findByIdOrUrl(id, companyId)
                 .orElseThrow(() -> new NotFoundException("Company not found"));
 
-        // Get all foods of the company grouped by category
-        List<Food> food = foodRepository.findByCompanyId(companyId)
-                .orElseThrow(() -> new NotFoundException("Food not found"));
-
-        List<MenuCategoryDTO> categories = food.parallelStream()
-                .collect(Collectors.groupingBy(Food::getCategory))
-                .entrySet().parallelStream()
-                .map(entry -> MenuCategoryDTO
-                        .builder()
-                        .id(entry.getKey().getId())
-                        .name(entry.getKey().getName())
-                        .status(entry.getKey().getStatus())
-                        .food(entry.getValue())
-                        .build())
-                .toList();
+        List<Category> categories = categoryRepository.findAllByCompanyId(company.getId())
+                .orElseThrow(() -> new NotFoundException("Category not found"));
 
         MenuDTO menuDTO = MenuDTO
                 .builder()

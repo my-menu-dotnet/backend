@@ -9,12 +9,15 @@ import net.mymenu.repository.CompanyRepository;
 import net.mymenu.repository.FileStorageRepository;
 import net.mymenu.security.JwtHelper;
 import jakarta.validation.Valid;
+import net.mymenu.service.CompanyService;
+import net.mymenu.service.QRCodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,16 +31,13 @@ public class CompanyController {
     private CompanyRepository companyRepository;
 
     @Autowired
-    private CategoryRepository categoryRepository;
-
-    @Autowired
-    private FileStorageRepository fileStorageRepository;
-
-    @Autowired
     private CompanyMapper companyMapper;
 
     @Autowired
     private JwtHelper jwtHelper;
+
+    @Autowired
+    private CompanyService companyService;
 
     @GetMapping
     public ResponseEntity<List<Company>> list(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
@@ -53,27 +53,37 @@ public class CompanyController {
     }
 
     @GetMapping("/user")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Company>> getCompany() {
         User user = jwtHelper.extractUser();
         return ResponseEntity.status(HttpStatus.OK).body(user.getCompanies());
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Company> registerCompany(@Valid @RequestBody CompanyRequest company) {
         User user = jwtHelper.extractUser();
 
-        List<Category> categories = findCategories(company.getCategories());
-        FileStorage image = findImage(company.getImageId());
-        Address address = buildAddress(company.getAddress());
+        List<Category> categories = companyService.findCategories(company.getCategories());
+        FileStorage image = companyService.findImage(company.getImageId());
+        Address address = companyService.buildAddress(company.getAddress());
+
+        FileStorage header = null;
+        if (company.getHeaderId() != null) {
+            header = companyService.findImage(company.getHeaderId());
+        }
 
         Company newCompany = Company.builder()
                 .name(company.getName())
                 .cnpj(company.getCnpj())
                 .email(company.getEmail())
+                .primaryColor(company.getPrimaryColor())
                 .phone(company.getPhone())
                 .categories(categories)
                 .image(image)
+                .header(header)
                 .address(address)
+                .url(UUID.randomUUID().toString())
                 .build();
 
         user.getCompanies().add(newCompany);
@@ -84,6 +94,7 @@ public class CompanyController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Company> updateCompany(@Valid @RequestBody CompanyRequest company, @PathVariable UUID id) {
         User user = jwtHelper.extractUser();
 
@@ -94,9 +105,13 @@ public class CompanyController {
             throw new SecurityException("User does not have permission to update this company");
         }
 
-        List<Category> categories = findCategories(company.getCategories());
-        FileStorage image = findImage(company.getImageId());
+        FileStorage image = companyService.findImage(company.getImageId());
         Address address = companyToUpdate.getAddress();
+
+        FileStorage header = companyToUpdate.getHeader();
+        if (company.getHeaderId() != null) {
+            header = companyService.findImage(company.getHeaderId());
+        }
 
         if (address != null) {
             address.setStreet(company.getAddress().getStreet());
@@ -107,15 +122,16 @@ public class CompanyController {
             address.setState(company.getAddress().getState());
             address.setZipCode(company.getAddress().getZipCode());
         } else {
-            address = buildAddress(company.getAddress());
+            address = companyService.buildAddress(company.getAddress());
         }
 
         companyToUpdate.setName(company.getName());
         companyToUpdate.setCnpj(company.getCnpj());
         companyToUpdate.setEmail(company.getEmail());
+        companyToUpdate.setPrimaryColor(company.getPrimaryColor());
         companyToUpdate.setPhone(company.getPhone());
-        companyToUpdate.setCategories(categories);
         companyToUpdate.setImage(image);
+        companyToUpdate.setHeader(header);
         companyToUpdate.setAddress(address);
 
         companyRepository.saveAndFlush(companyToUpdate);
@@ -123,25 +139,16 @@ public class CompanyController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    private List<Category> findCategories(List<UUID> categoryIds) {
-        return categoryRepository.findAllByIdList(categoryIds)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-    }
+    @GetMapping("/qr-code")
+    public ResponseEntity<byte[]> getCompanyQrCode() {
+        User user = jwtHelper.extractUser();
+        Company company = user.getCompanies().getFirst();
 
-    private FileStorage findImage(UUID imageId) {
-        return fileStorageRepository.findById(imageId)
-                .orElseThrow(() -> new RuntimeException("Image not found"));
-    }
+        byte[] qrCode = QRCodeService.generateQRCodeImage(company.getId().toString());
 
-    private Address buildAddress(AddressRequest addressRequest) {
-        return Address.builder()
-                .street(addressRequest.getStreet())
-                .number(addressRequest.getNumber())
-                .complement(addressRequest.getComplement())
-                .neighborhood(addressRequest.getNeighborhood())
-                .city(addressRequest.getCity())
-                .state(addressRequest.getState())
-                .zipCode(addressRequest.getZipCode())
-                .build();
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .header("Content-Type", "image/png")
+                .body(qrCode);
     }
 }

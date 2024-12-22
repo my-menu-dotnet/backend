@@ -2,14 +2,13 @@ package net.mymenu.models;
 
 import com.fasterxml.jackson.annotation.*;
 import net.mymenu.enums.FoodStatus;
-import net.mymenu.interfaces.CompanyAware;
 import net.mymenu.interfaces.Timestamped;
-import net.mymenu.listeners.CompanyEntityListener;
 import net.mymenu.listeners.TimestampedListener;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -18,9 +17,9 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EntityListeners({TimestampedListener.class, CompanyEntityListener.class})
+@EntityListeners({TimestampedListener.class})
 @Builder
-public class Food implements Timestamped, CompanyAware {
+public class Food implements Timestamped {
 
     @Id
     @Column(name = "id", unique = true)
@@ -63,6 +62,10 @@ public class Food implements Timestamped, CompanyAware {
     @JoinColumn(name = "category_id")
     @JsonIgnoreProperties("foods")
     private Category category;
+
+    @OneToMany
+    @JsonManagedReference
+    private List<Discount> discounts;
 
     @ManyToOne
     @JoinColumn(name = "company_id")

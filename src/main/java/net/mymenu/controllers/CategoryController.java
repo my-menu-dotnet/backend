@@ -39,10 +39,7 @@ public class CategoryController {
         List<Category> categoriesOrdered = user
                 .getCompanies()
                 .getFirst()
-                .getCategories()
-                .parallelStream()
-                .sorted(Comparator.comparingInt(Category::getOrder))
-                .toList();
+                .getCategories();
 
         return ResponseEntity.status(HttpStatus.OK).body(categoriesOrdered);
     }

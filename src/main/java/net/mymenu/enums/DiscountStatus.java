@@ -1,6 +1,6 @@
 package net.mymenu.enums;
 
-public enum SaleStatus {
+public enum DiscountStatus {
     ACTIVE,
     INACTIVE
 }

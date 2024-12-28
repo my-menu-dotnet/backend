@@ -1,9 +1,13 @@
 package net.mymenu.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import net.mymenu.enums.SaleStatus;
+import net.mymenu.enums.DiscountType;
+import net.mymenu.enums.DiscountStatus;
+import net.mymenu.interfaces.Timestamped;
+import net.mymenu.listeners.TimestampedListener;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -15,21 +19,27 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-public class Discount {
+@EntityListeners(TimestampedListener.class)
+public class Discount implements Timestamped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JsonBackReference
     private Food food;
 
     @ManyToOne
+    @JsonIgnore
     private Company company;
 
     @Column(name = "discount")
     private double discount;
+
+    @Column(name = "type")
+    @Enumerated(EnumType.STRING)
+    private DiscountType type;
 
     @Column(name = "start_at")
     private LocalDateTime startAt;
@@ -39,7 +49,7 @@ public class Discount {
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
-    private SaleStatus status;
+    private DiscountStatus status;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

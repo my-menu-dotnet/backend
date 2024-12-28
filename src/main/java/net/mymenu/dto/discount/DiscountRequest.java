@@ -1,0 +1,40 @@
+package net.mymenu.dto.discount;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import lombok.*;
+import net.mymenu.enums.DiscountType;
+import net.mymenu.enums.DiscountStatus;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class DiscountRequest {
+
+    @JsonProperty("food_id")
+    private UUID foodId;
+
+    @JsonProperty("discount")
+    @Positive(message = "The discount must be greater than zero")
+    private double discount;
+
+    @JsonProperty("type")
+    @NotNull
+    private DiscountType type;
+
+    @JsonProperty("status")
+    @NotNull
+    private DiscountStatus status;
+
+    @JsonProperty("start_at")
+    private LocalDateTime startAt;
+
+    @JsonProperty("end_at")
+    private LocalDateTime endAt;
+}

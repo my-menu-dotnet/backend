@@ -1,7 +1,7 @@
 package net.mymenu.controllers;
 
 import jakarta.validation.Valid;
-import net.mymenu.dto.sale.SaleRequest;
+import net.mymenu.dto.discount.DiscountRequest;
 import net.mymenu.exception.NotFoundException;
 import net.mymenu.models.Food;
 import net.mymenu.models.Discount;
@@ -43,51 +43,50 @@ public class DiscountController {
     }
 
     @PostMapping
-    public ResponseEntity<Discount> createSale(@RequestBody @Valid SaleRequest saleRequest) {
+    public ResponseEntity<Discount> createSale(@RequestBody @Valid DiscountRequest discountRequest) {
         User user = jwtHelper.extractUser();
 
         List<Food> userFoods = user.getCompanies().getFirst().getCategories().stream()
                 .flatMap(category -> category.getFoods().stream())
                 .toList();
 
-        if (userFoods.stream().noneMatch(food -> food.getId().equals(saleRequest.getFoodId()))) {
+        if (userFoods.stream().noneMatch(food -> food.getId().equals(discountRequest.getFoodId()))) {
             throw new NotFoundException("Food not found");
         }
 
-        if (saleRequest.getDiscount() < 0 || saleRequest.getDiscount() > 100) {
-            throw new NotFoundException("Discount must be between 0 and 100");
-        }
-
-        Food food = foodRepository.findById(saleRequest.getFoodId())
+        Food food = foodRepository.findById(discountRequest.getFoodId())
                 .orElseThrow(() -> new NotFoundException("Food not found"));
 
-        Discount sale = Discount
+        Discount discount = Discount
                 .builder()
-                .startAt(saleRequest.getStartAt())
-                .endAt(saleRequest.getEndAt())
-                .discount(saleRequest.getDiscount())
+                .company(user.getCompanies().getFirst())
+                .type(discountRequest.getType())
+                .status(discountRequest.getStatus())
+                .startAt(discountRequest.getStartAt())
+                .endAt(discountRequest.getEndAt())
+                .discount(discountRequest.getDiscount())
                 .build();
 
         List<Discount> foodDiscounts = food.getDiscounts();
-        foodDiscounts.add(sale);
+        foodDiscounts.add(discount);
 
         food.setDiscounts(foodDiscounts);
 
-        discountRepository.saveAndFlush(sale);
+        discountRepository.saveAndFlush(discount);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(sale);
+                .body(discount);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Discount> updateSale(SaleRequest saleRequest, @PathVariable UUID id) {
+    public ResponseEntity<Discount> updateSale(DiscountRequest discountRequest, @PathVariable UUID id) {
         Discount sale = discountRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Discount not found"));
 
-        sale.setStartAt(saleRequest.getStartAt());
-        sale.setEndAt(saleRequest.getEndAt());
-        sale.setDiscount(saleRequest.getDiscount());
+        sale.setStartAt(discountRequest.getStartAt());
+        sale.setEndAt(discountRequest.getEndAt());
+        sale.setDiscount(discountRequest.getDiscount());
 
         discountRepository.saveAndFlush(sale);
 

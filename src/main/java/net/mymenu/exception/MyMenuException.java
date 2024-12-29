@@ -2,8 +2,8 @@ package net.mymenu.exception;
 
 import org.springframework.http.HttpStatus;
 
-public abstract class Exception extends RuntimeException {
-    public Exception(String message) {
+public abstract class MyMenuException extends RuntimeException {
+    public MyMenuException(String message) {
         super(message);
     }
 

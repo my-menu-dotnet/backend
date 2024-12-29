@@ -10,6 +10,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -42,6 +44,30 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Error> handleIllegalArgumentException(IllegalArgumentException e) {
+        Error error = Error
+                .builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message(e.getMessage())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler({BadCredentialsException.class, InternalAuthenticationServiceException.class})
+    public ResponseEntity<Error> handleBadCredentialsException() {
+        Error error = Error
+                .builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .message("Invalid credentials")
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(error);
+    }
+
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<Error> handleExpiredJwtException(ExpiredJwtException e) {
         Error error = Error
@@ -57,7 +83,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(SecurityException.class)
     public ResponseEntity<Error> handleSecurityException(SecurityException e) {
-        e.printStackTrace();
+        LOGGER.error("Security exception {}", e.getMessage());
 
         ResponseCookie cookieRefreshToken = cookieService.createCookie("refreshToken", "", 0, "/auth");
         ResponseCookie cookieAccessToken = cookieService.createCookie("accessToken", "", 0, "/");
@@ -69,21 +95,9 @@ public class GlobalExceptionHandler {
                 .build();
     }
 
-    @ExceptionHandler(InternalErrorException.class)
-    public ResponseEntity<Error> handleInternalErrorException(InternalErrorException e) {
-        LOGGER.error("Internal error", e);
-
-        Error error = Error
-                .builder()
-                .status(HttpStatus.BAD_REQUEST.value())
-                .message("Invalid request")
-                .build();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Error> handleException(Exception e) {
-        LOGGER.error("Unexpected error", e);
+    @ExceptionHandler(MyMenuException.class)
+    public ResponseEntity<Error> handleException(MyMenuException e) {
+        LOGGER.info("Unexpected error {}", e.getMessage());
 
         String message = e.getMessage() != null ? e.getMessage() : "Invalid request";
         HttpStatus status = e.getHttpStatus();
@@ -94,5 +108,16 @@ public class GlobalExceptionHandler {
                 .message(message)
                 .build();
         return ResponseEntity.status(status).body(error);
+    }
+
+    @ExceptionHandler({InternalErrorException.class, Exception.class})
+    public ResponseEntity<Error> handleException(Exception e) {
+        LOGGER.error("Internal server error", e);
+
+        Error error = Error
+                .builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 }

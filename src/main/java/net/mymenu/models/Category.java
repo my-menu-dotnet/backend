@@ -1,5 +1,6 @@
 package net.mymenu.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import net.mymenu.enums.CategoryStatus;
@@ -36,6 +37,7 @@ public class Category implements Timestamped {
     private String name;
 
     @ManyToOne(optional = false)
+    @JsonIgnore
     private Company company;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)

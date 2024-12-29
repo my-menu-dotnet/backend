@@ -1,12 +1,16 @@
 package net.mymenu.dto.discount;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
+import net.mymenu.constraints.ValidDateRange;
 import net.mymenu.enums.DiscountType;
 import net.mymenu.enums.DiscountStatus;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -15,6 +19,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@ValidDateRange
 public class DiscountRequest {
 
     @JsonProperty("food_id")
@@ -33,8 +38,10 @@ public class DiscountRequest {
     private DiscountStatus status;
 
     @JsonProperty("start_at")
-    private LocalDateTime startAt;
+    @FutureOrPresent(message = "The start date must be in the present or future")
+    private LocalDate startAt;
 
     @JsonProperty("end_at")
-    private LocalDateTime endAt;
+    @FutureOrPresent(message = "The end date must be in the present or future")
+    private LocalDate endAt;
 }

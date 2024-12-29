@@ -5,7 +5,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
-import net.mymenu.exception.Exception;
+import net.mymenu.exception.MyMenuException;
 import net.mymenu.exception.InternalErrorException;
 
 import java.io.ByteArrayOutputStream;
@@ -25,7 +25,7 @@ public class QRCodeService {
             MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
 
             return pngOutputStream.toByteArray();
-        } catch (WriterException | IOException | Exception e) {
+        } catch (WriterException | IOException | MyMenuException e) {
             throw new InternalErrorException("Could not generate QR Code");
         }
     }

@@ -63,7 +63,7 @@ public class Food implements Timestamped {
     @JsonIgnoreProperties("foods")
     private Category category;
 
-    @OneToMany
+    @OneToMany(mappedBy = "food", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Discount> discounts;
 

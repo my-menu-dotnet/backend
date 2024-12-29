@@ -1,15 +1,11 @@
 package net.mymenu.controllers;
 
-import net.mymenu.dto.menu.MenuCategoryDTO;
 import net.mymenu.dto.menu.MenuDTO;
-import net.mymenu.exception.Exception;
 import net.mymenu.exception.NotFoundException;
 import net.mymenu.models.Category;
 import net.mymenu.models.Company;
-import net.mymenu.models.Food;
 import net.mymenu.repository.CategoryRepository;
 import net.mymenu.repository.CompanyRepository;
-import net.mymenu.repository.FoodRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/menu")

@@ -2,7 +2,7 @@ package net.mymenu.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class EmailCodeRequestTooSoonException extends Exception {
+public class EmailCodeRequestTooSoonException extends MyMenuException {
     public EmailCodeRequestTooSoonException(String message) {
         super(message);
     }

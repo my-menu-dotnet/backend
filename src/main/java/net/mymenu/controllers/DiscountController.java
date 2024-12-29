@@ -1,8 +1,10 @@
 package net.mymenu.controllers;
 
 import jakarta.validation.Valid;
+import net.mymenu.dto.discount.DiscountDTO;
 import net.mymenu.dto.discount.DiscountRequest;
 import net.mymenu.exception.NotFoundException;
+import net.mymenu.mapper.DiscountMapper;
 import net.mymenu.models.Food;
 import net.mymenu.models.Discount;
 import net.mymenu.models.User;
@@ -30,20 +32,39 @@ public class DiscountController {
     @Autowired
     private JwtHelper jwtHelper;
 
+    @Autowired
+    private DiscountMapper discountMapper;
+
     @GetMapping
-    public ResponseEntity<List<Discount>> findSale() {
+    public ResponseEntity<List<DiscountDTO>> findSale() {
         User user = jwtHelper.extractUser();
 
-        List<Discount> sale = discountRepository.findAllByCompany((user.getCompanies().getFirst()))
+        List<Discount> discounts = discountRepository.findAllByCompanyOrderByStatus((user.getCompanies().getFirst()))
                 .orElseThrow(() -> new NotFoundException("Discount not found"));
+
+        List<DiscountDTO> discountDTOS = discountMapper.toDiscountDTO(discounts);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(sale);
+                .body(discountDTOS);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<DiscountDTO> findSaleById(@PathVariable UUID id) {
+        User user = jwtHelper.extractUser();
+
+        Discount discount = discountRepository.findByIdAndCompany(id, user.getCompanies().getFirst())
+                .orElseThrow(() -> new NotFoundException("Discount not found"));
+
+        DiscountDTO discountDTO = discountMapper.toDiscountDTO(discount);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(discountDTO);
     }
 
     @PostMapping
-    public ResponseEntity<Discount> createSale(@RequestBody @Valid DiscountRequest discountRequest) {
+    public ResponseEntity<DiscountDTO> createSale(@RequestBody @Valid DiscountRequest discountRequest) {
         User user = jwtHelper.extractUser();
 
         List<Food> userFoods = user.getCompanies().getFirst().getCategories().stream()
@@ -65,34 +86,44 @@ public class DiscountController {
                 .startAt(discountRequest.getStartAt())
                 .endAt(discountRequest.getEndAt())
                 .discount(discountRequest.getDiscount())
+                .food(food)
                 .build();
-
-        List<Discount> foodDiscounts = food.getDiscounts();
-        foodDiscounts.add(discount);
-
-        food.setDiscounts(foodDiscounts);
 
         discountRepository.saveAndFlush(discount);
 
+        DiscountDTO discountDTO = discountMapper.toDiscountDTO(discount);
+
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(discount);
+                .body(discountDTO);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Discount> updateSale(DiscountRequest discountRequest, @PathVariable UUID id) {
-        Discount sale = discountRepository.findById(id)
+    public ResponseEntity<DiscountDTO> updateSale(@RequestBody @Valid DiscountRequest discountRequest, @PathVariable UUID id) {
+        Discount discount = discountRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Discount not found"));
 
-        sale.setStartAt(discountRequest.getStartAt());
-        sale.setEndAt(discountRequest.getEndAt());
-        sale.setDiscount(discountRequest.getDiscount());
+        Food food = discount.getFood();
 
-        discountRepository.saveAndFlush(sale);
+        if (food.getId() != discountRequest.getFoodId()) {
+            food = foodRepository.findById(discountRequest.getFoodId())
+                    .orElseThrow(() -> new NotFoundException("Food not found"));
+        }
+
+        discount.setType(discountRequest.getType());
+        discount.setStatus(discountRequest.getStatus());
+        discount.setStartAt(discountRequest.getStartAt());
+        discount.setEndAt(discountRequest.getEndAt());
+        discount.setDiscount(discountRequest.getDiscount());
+        discount.setFood(food);
+
+        discountRepository.saveAndFlush(discount);
+
+        DiscountDTO discountDTO = discountMapper.toDiscountDTO(discount);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(sale);
+                .body(discountDTO);
     }
 
 }

@@ -2,7 +2,7 @@ package net.mymenu.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class EmailCodeExpiredException extends Exception {
+public class EmailCodeExpiredException extends MyMenuException {
     public EmailCodeExpiredException() {
         super("Email code expired");
     }

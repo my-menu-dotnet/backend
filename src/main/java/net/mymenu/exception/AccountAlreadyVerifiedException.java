@@ -2,7 +2,7 @@ package net.mymenu.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class AccountAlreadyVerifiedException extends Exception {
+public class AccountAlreadyVerifiedException extends MyMenuException {
     public AccountAlreadyVerifiedException(String message) {
         super(message);
     }

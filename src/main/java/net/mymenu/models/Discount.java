@@ -9,6 +9,7 @@ import net.mymenu.enums.DiscountStatus;
 import net.mymenu.interfaces.Timestamped;
 import net.mymenu.listeners.TimestampedListener;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -42,10 +43,10 @@ public class Discount implements Timestamped {
     private DiscountType type;
 
     @Column(name = "start_at")
-    private LocalDateTime startAt;
+    private LocalDate startAt;
 
     @Column(name = "end_at")
-    private LocalDateTime endAt;
+    private LocalDate endAt;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
@@ -56,4 +57,17 @@ public class Discount implements Timestamped {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public DiscountStatus getStatus() {
+        if (this.status == DiscountStatus.INACTIVE) {
+            return DiscountStatus.INACTIVE;
+        }
+        if (this.endAt != null && this.endAt.isBefore(LocalDate.now())) {
+            return DiscountStatus.EXPIRED;
+        }
+        if (this.startAt != null && this.startAt.isAfter(LocalDate.now())) {
+            return DiscountStatus.PENDING;
+        }
+        return status;
+    }
 }

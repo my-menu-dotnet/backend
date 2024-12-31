@@ -7,11 +7,11 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 import net.mymenu.constraints.ValidDateRange;
+import net.mymenu.constraints.ValidDiscount;
 import net.mymenu.enums.DiscountType;
 import net.mymenu.enums.DiscountStatus;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -20,6 +20,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @ValidDateRange
+@ValidDiscount
 public class DiscountRequest {
 
     @JsonProperty("food_id")

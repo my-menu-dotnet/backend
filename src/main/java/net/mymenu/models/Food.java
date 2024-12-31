@@ -1,6 +1,7 @@
 package net.mymenu.models;
 
 import com.fasterxml.jackson.annotation.*;
+import net.mymenu.enums.DiscountStatus;
 import net.mymenu.enums.FoodStatus;
 import net.mymenu.interfaces.Timestamped;
 import net.mymenu.listeners.TimestampedListener;
@@ -67,6 +68,9 @@ public class Food implements Timestamped {
     @JsonManagedReference
     private List<Discount> discounts;
 
+    @Transient
+    private Discount activeDiscount;
+
     @ManyToOne
     @JoinColumn(name = "company_id")
     @JsonIgnore
@@ -79,4 +83,14 @@ public class Food implements Timestamped {
     @Column(name = "updated_at")
     @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
+
+    public Discount getActiveDiscount() {
+        if (this.discounts == null || this.discounts.isEmpty()) {
+            return null;
+        }
+        return this.discounts.stream()
+                .filter(discount -> discount.getStatus() == null || discount.getStatus() == DiscountStatus.ACTIVE)
+                .findFirst()
+                .orElse(null);
+    }
 }

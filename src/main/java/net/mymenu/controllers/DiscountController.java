@@ -3,6 +3,7 @@ package net.mymenu.controllers;
 import jakarta.validation.Valid;
 import net.mymenu.dto.discount.DiscountDTO;
 import net.mymenu.dto.discount.DiscountRequest;
+import net.mymenu.enums.DiscountStatus;
 import net.mymenu.exception.NotFoundException;
 import net.mymenu.mapper.DiscountMapper;
 import net.mymenu.models.Food;
@@ -71,12 +72,15 @@ public class DiscountController {
                 .flatMap(category -> category.getFoods().stream())
                 .toList();
 
-        if (userFoods.stream().noneMatch(food -> food.getId().equals(discountRequest.getFoodId()))) {
-            throw new NotFoundException("Food not found");
-        }
-
-        Food food = foodRepository.findById(discountRequest.getFoodId())
+        Food food = userFoods.stream()
+                .filter(food1 -> food1.getId().equals(discountRequest.getFoodId()))
+                .findFirst()
                 .orElseThrow(() -> new NotFoundException("Food not found"));
+
+        if (discountRequest.getStatus() == DiscountStatus.ACTIVE
+                && food.getDiscounts().stream().anyMatch(discount -> discount.getStatus().equals(DiscountStatus.ACTIVE))) {
+            throw new NotFoundException("Food already has a discount active");
+        }
 
         Discount discount = Discount
                 .builder()
@@ -108,6 +112,11 @@ public class DiscountController {
         if (food.getId() != discountRequest.getFoodId()) {
             food = foodRepository.findById(discountRequest.getFoodId())
                     .orElseThrow(() -> new NotFoundException("Food not found"));
+        }
+
+        if (discountRequest.getStatus() == DiscountStatus.ACTIVE
+                && food.getDiscounts().stream().anyMatch(d -> d.getStatus().equals(DiscountStatus.ACTIVE))) {
+            throw new NotFoundException("Food already has a discount active");
         }
 
         discount.setType(discountRequest.getType());

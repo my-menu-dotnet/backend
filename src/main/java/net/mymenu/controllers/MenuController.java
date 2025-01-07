@@ -1,11 +1,14 @@
 package net.mymenu.controllers;
 
+import lombok.Getter;
 import net.mymenu.dto.menu.MenuDTO;
+import net.mymenu.enums.analytics.AccessWays;
 import net.mymenu.exception.NotFoundException;
 import net.mymenu.models.Category;
 import net.mymenu.models.Company;
 import net.mymenu.repository.CategoryRepository;
 import net.mymenu.repository.CompanyRepository;
+import net.mymenu.service.analytics.CompanyAccessService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/menu")
@@ -25,29 +29,38 @@ public class MenuController {
     private CompanyRepository companyRepository;
 
     @Autowired
-    private CategoryRepository categoryRepository;
+    private CompanyAccessService companyAccessService;
 
-    @GetMapping("/{companyId}")
-    public ResponseEntity<MenuDTO> searchByCompanyId(@PathVariable String companyId) {
-        UUID id = null;
-
-        try {
-            id = UUID.fromString(companyId);
-        } catch (IllegalArgumentException _) {
-        }
-
-        Company company = companyRepository.findByIdOrUrl(id, companyId)
+    @GetMapping("/{companyUrl}/url")
+    public ResponseEntity<MenuDTO> searchByCompanyUrl(@PathVariable String companyUrl) {
+        Company company = companyRepository.findByUrl(companyUrl)
                 .orElseThrow(() -> new NotFoundException("Company not found"));
 
-        List<Category> categories = categoryRepository.findAllByCompanyId(company.getId())
-                .orElseThrow(() -> new NotFoundException("Category not found"));
+        companyAccessService.logCompanyAccess(AccessWays.WEB, company.getId());
 
         MenuDTO menuDTO = MenuDTO
                 .builder()
                 .company(company)
-                .categories(categories)
+                .categories(company.getCategories())
                 .build();
 
         return ResponseEntity.status(HttpStatus.OK).body(menuDTO);
     }
+
+    @GetMapping("/{companyId}")
+    public ResponseEntity<MenuDTO> searchByCompanyId(@PathVariable UUID companyId) {
+        Company company = companyRepository.findById(companyId)
+                .orElseThrow(() -> new NotFoundException("Company not found"));
+
+        companyAccessService.logCompanyAccess(AccessWays.QR_CODE, company.getId());
+
+        MenuDTO menuDTO = MenuDTO
+                .builder()
+                .company(company)
+                .categories(company.getCategories())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(menuDTO);
+    }
+
 }

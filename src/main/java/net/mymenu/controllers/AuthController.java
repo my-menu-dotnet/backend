@@ -1,10 +1,12 @@
 package net.mymenu.controllers;
 
+import jakarta.transaction.Transactional;
 import net.mymenu.dto.auth.AuthVerifyEmail;
 import net.mymenu.dto.auth.AuthLogin;
 import net.mymenu.dto.auth.AuthRegister;
 import net.mymenu.enums.auth.EmailCodeType;
 import net.mymenu.exception.NotFoundException;
+import net.mymenu.models.Company;
 import net.mymenu.models.auth.RefreshToken;
 import net.mymenu.models.User;
 import net.mymenu.repository.auth.RefreshTokenRepository;
@@ -96,23 +98,26 @@ public class AuthController {
     }
 
     @PostMapping("/verify-email")
+    @Transactional
     public ResponseEntity<?> verifyEmail(@Valid @RequestBody AuthVerifyEmail authVerifyEmail) {
         User user = jwtHelper.extractUser();
 
         switch (authVerifyEmail.getType()) {
             case USER:
-                if (!emailCodeService.validateUserEmailCode(user, authVerifyEmail.getCode())) {
+                if (!emailCodeService.validateEmailCode(authVerifyEmail.getCode(), user.getEmail())) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
                 }
                 user.setVerifiedEmail(true);
-                userRepository.save(user);
+
                 break;
             case COMPANY:
-                if (!emailCodeService.validateCompanyEmailCode(user, authVerifyEmail.getCode())) {
+                Company company = user.getCompanies().getFirst();
+
+                if (!emailCodeService.validateEmailCode(authVerifyEmail.getCode(), company.getEmail())) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
                 }
-                user.getCompanies().getFirst().setVerifiedEmail(true);
-                userRepository.save(user);
+                company.setVerifiedEmail(true);
+
                 break;
             default:
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -123,12 +128,16 @@ public class AuthController {
 
     @PostMapping("/verify-email/send")
     public ResponseEntity<?> sendEmailCode(@RequestParam EmailCodeType type) {
+        User user = jwtHelper.extractUser();
+
         if (type == EmailCodeType.USER) {
-            emailCodeService.sendUserEmail();
+            emailCodeService.sendEmailCode(user.getEmail());
         }
         if (type == EmailCodeType.COMPANY) {
-            emailCodeService.sendCompanyEmail();
+            Company company = user.getCompanies().getFirst();
+            emailCodeService.sendEmailCode(company.getEmail());
         }
+
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 

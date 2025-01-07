@@ -134,7 +134,7 @@ public class User implements UserDetails, Timestamped {
     }
 
     public boolean isVerifiedEmail() {
-        return true;
+        return isVerifiedEmail;
     }
 
     @PrePersist

@@ -102,7 +102,7 @@ public class Company implements Timestamped {
     private LocalDateTime updatedAt;
 
     public boolean isVerifiedEmail() {
-        return true;
+        return isVerifiedEmail;
     }
 
     @PrePersist

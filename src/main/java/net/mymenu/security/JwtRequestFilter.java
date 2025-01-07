@@ -116,7 +116,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     }
 
     private void validateUserVerifiedEmail(User user, String uri) {
-        if (!user.isVerifiedEmail() && !uri.equals("/user/me") && !uri.equals("/auth/verify-email/send")) {
+        if (!user.isVerifiedEmail() && !(uri.equals("/user/me") || uri.equals("/auth/verify-email/send") || uri.equals("/auth/verify-email"))) {
             throw new AccountNotVerifiedException("Account not verified");
         }
     }

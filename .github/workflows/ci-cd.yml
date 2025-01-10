@@ -9,56 +9,47 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up JDK
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'adopt'
-        java-version: '22'
-
-    - name: Build with Maven
-      run: mvn clean package
-
-    - name: Archive production artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: packaged-application
-        path: target/*.jar
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v2
+#
+#      - name: Set up JDK
+#        uses: actions/setup-java@v4
+#        with:
+#          distribution: 'adopt'
+#          java-version: '22'
+#
+#      - name: Build with Maven
+#        run: mvn clean package
+#
+#      - name: Archive production artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: packaged-application
+#          path: target/*.jar
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-    - name: Download artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: packaged-application
-        path: target/
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: packaged-application
+          path: target/
 
-    - name: Setup key
-      id: setup-key
-      env:
-        DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-      run: |
-        echo "$DEPLOY_KEY" >> $HOME/key.pem
-        chmod 400 $HOME/key.pem
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::710271916844:role/GITHUB_ACTION
+          role-session-name: GITHUB_ACTION
+          aws-region: sa-east-1
 
-    - name: Copy JAR to EC2
-      uses: appleboy/scp-action@master
-      with:
-        host: ${{ secrets.DEPLOY_HOST }}
-        username: ec2-user
-        key: ${{ secrets.DEPLOY_KEY }}
-        source: "target/*.jar"
-        target: "/home/ec2-user/deployment/"
-
-    - name: Connect SSH and Restart Services
-      run: |
-        ssh -o StrictHostKeyChecking=no -i $HOME/key.pem ec2-user@ec2-18-230-123-45.sa-east-1.compute.amazonaws.com '
-          sudo systemctl restart mymenu-backend &&
-          sudo systemctl restart nginx
-        '
+      - name: Connect SSH and Restart Services
+        run: |
+          aws deploy create-deployment \
+              --application-name MyMenu \
+              --deployment-group-name MY_MENU_AUTOMATED_GROUP \
+              --deployment-config-name CodeDeployDefault.OneAtATime \
+              --github-location repository=${{ github.repository }},commitId=${{ github.sha }}

@@ -80,7 +80,7 @@ CREATE TABLE category
 
 CREATE TABLE company
 (
-    id                UUID                       NOT NULL,
+    id                UUID NOT NULL,
     name              VARCHAR(255),
     cnpj              VARCHAR(255),
     phone             VARCHAR(255),
@@ -152,7 +152,7 @@ CREATE TABLE refresh_token
 (
     token      VARCHAR(255)                NOT NULL,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    user_id    UUID                        NOT NULL,
+    user_id    UUID                    NOT NULL,
     CONSTRAINT pk_refresh_token PRIMARY KEY (token)
 );
 
@@ -186,40 +186,40 @@ CREATE INDEX idx_user_email ON app_user (email);
 CREATE INDEX idx_user_phone ON app_user (phone);
 
 ALTER TABLE app_user
-    ADD CONSTRAINT FK_APP_USER_ON_ADDRESS FOREIGN KEY (address_id) REFERENCES address (id);
+    ADD CONSTRAINT fk_app_user_on_address FOREIGN KEY (address_id) REFERENCES address (id) ON DELETE NO ACTION;
+
+ALTER TABLE app_user_companies
+    ADD CONSTRAINT fk_appusecom_on_company FOREIGN KEY (companies_id) REFERENCES company (id) ON DELETE NO ACTION;
+
+ALTER TABLE app_user_companies
+    ADD CONSTRAINT fk_appusecom_on_user FOREIGN KEY (user_id) REFERENCES app_user (id) ON DELETE NO ACTION;
 
 ALTER TABLE category
-    ADD CONSTRAINT FK_CATEGORY_ON_IMAGE FOREIGN KEY (image_id) REFERENCES file_storage (id);
-
-ALTER TABLE company
-    ADD CONSTRAINT FK_COMPANY_ON_ADDRESS FOREIGN KEY (address_id) REFERENCES address (id);
-
-ALTER TABLE company
-    ADD CONSTRAINT FK_COMPANY_ON_IMAGE FOREIGN KEY (image_id) REFERENCES file_storage (id);
-
-ALTER TABLE food
-    ADD CONSTRAINT FK_FOOD_ON_CATEGORY FOREIGN KEY (category_id) REFERENCES category (id);
-
-ALTER TABLE food
-    ADD CONSTRAINT FK_FOOD_ON_COMPANY FOREIGN KEY (company_id) REFERENCES company (id);
-
-ALTER TABLE food
-    ADD CONSTRAINT FK_FOOD_ON_IMAGE FOREIGN KEY (image_id) REFERENCES file_storage (id);
-
-ALTER TABLE app_user_companies
-    ADD CONSTRAINT fk_appusecom_on_company FOREIGN KEY (companies_id) REFERENCES company (id);
-
-ALTER TABLE app_user_companies
-    ADD CONSTRAINT fk_appusecom_on_user FOREIGN KEY (user_id) REFERENCES app_user (id);
+    ADD CONSTRAINT fk_category_on_image FOREIGN KEY (image_id) REFERENCES file_storage (id) ON DELETE NO ACTION;
 
 ALTER TABLE company_allowed_field
-    ADD CONSTRAINT fk_comallfie_on_allowed_field FOREIGN KEY (allowed_field_id) REFERENCES allowed_field (id);
+    ADD CONSTRAINT fk_comallfie_on_allowed_field FOREIGN KEY (allowed_field_id) REFERENCES allowed_field (id) ON DELETE NO ACTION;
 
 ALTER TABLE company_allowed_field
-    ADD CONSTRAINT fk_comallfie_on_company FOREIGN KEY (company_id) REFERENCES company (id);
+    ADD CONSTRAINT fk_comallfie_on_company FOREIGN KEY (company_id) REFERENCES company (id) ON DELETE NO ACTION;
 
 ALTER TABLE company_categories
-    ADD CONSTRAINT fk_comcat_on_category FOREIGN KEY (categories_id) REFERENCES category (id);
+    ADD CONSTRAINT fk_comcat_on_category FOREIGN KEY (categories_id) REFERENCES category (id) ON DELETE NO ACTION;
 
 ALTER TABLE company_categories
-    ADD CONSTRAINT fk_comcat_on_company FOREIGN KEY (company_id) REFERENCES company (id);
+    ADD CONSTRAINT fk_comcat_on_company FOREIGN KEY (company_id) REFERENCES company (id) ON DELETE NO ACTION;
+
+ALTER TABLE company
+    ADD CONSTRAINT fk_company_on_address FOREIGN KEY (address_id) REFERENCES address (id) ON DELETE NO ACTION;
+
+ALTER TABLE company
+    ADD CONSTRAINT fk_company_on_image FOREIGN KEY (image_id) REFERENCES file_storage (id) ON DELETE NO ACTION;
+
+ALTER TABLE food
+    ADD CONSTRAINT fk_food_on_category FOREIGN KEY (category_id) REFERENCES category (id) ON DELETE NO ACTION;
+
+ALTER TABLE food
+    ADD CONSTRAINT fk_food_on_company FOREIGN KEY (company_id) REFERENCES company (id) ON DELETE NO ACTION;
+
+ALTER TABLE food
+    ADD CONSTRAINT fk_food_on_image FOREIGN KEY (image_id) REFERENCES file_storage (id) ON DELETE NO ACTION;

@@ -6,24 +6,24 @@ on:
       - master
 
 jobs:
-#  test:
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v2
-#
-#      - name: Set up JDK
-#        uses: actions/setup-java@v4
-#        with:
-#          distribution: 'adopt'
-#          java-version: '22'
-#
-#      - name: Test with Maven
-#        run: mvn -B test
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '22'
+
+      - name: Test with Maven
+        run: mvn -B test
 
   deploy:
-#    needs: test
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -33,9 +33,9 @@ jobs:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::710271916844:role/GITHUB_ACTION
-          role-session-name: GITHUB_ACTION
-          aws-region: sa-east-1
+          role-to-assume: ${{ROLE_TO_ASSUME}}
+          role-session-name: ${{ROLE_SESSION_NAME}}
+          aws-region: ${{AWS_REGION}}
 
       - name: Connect SSH and Restart Services
         run: |

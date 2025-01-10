@@ -33,9 +33,9 @@ jobs:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ROLE_TO_ASSUME}}
-          role-session-name: ${{ROLE_SESSION_NAME}}
-          aws-region: ${{AWS_REGION}}
+          role-to-assume: ${{secrets.ROLE_TO_ASSUME}}
+          role-session-name: ${{secrets.ROLE_SESSION_NAME}}
+          aws-region: ${{secrets.AWS_REGION}}
 
       - name: Connect SSH and Restart Services
         run: |

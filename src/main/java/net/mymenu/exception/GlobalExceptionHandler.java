@@ -80,8 +80,8 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
 
-    @ExceptionHandler(ExpiredJwtException.class)
-    public ResponseEntity<Error> handleExpiredJwtException(ExpiredJwtException e) {
+    @ExceptionHandler({ExpiredJwtException.class, TokenExpiredException.class})
+    public ResponseEntity<Error> handleExpiredJwtException(Exception e) {
         Error error = Error
                 .builder()
                 .status(HttpStatus.UNAUTHORIZED.value())

@@ -8,7 +8,9 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_CACHE_TYPE=simple
-      - JPA_HIBERNATE_DDL_AUTO=none
+      - SPRING_MVC_LOG_REQUEST_DETAILS=true
+      - JPA_SHOW_SQL=false
+      - JPA_HIBERNATE_DDL_AUTO=update
       - DATABASE_URL=jdbc:postgresql://postgres:5432/digimenu
       - DATABASE_USER=postgres
       - DATABASE_PASSWORD=postgres

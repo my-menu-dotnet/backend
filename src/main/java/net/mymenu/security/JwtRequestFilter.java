@@ -1,5 +1,6 @@
 package net.mymenu.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import net.mymenu.exception.AccountNotVerifiedException;
 import net.mymenu.exception.TokenExpiredException;
 import net.mymenu.models.User;
@@ -9,6 +10,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.antlr.v4.runtime.Token;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +90,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(emailPasswordAuthenticationToken);
             }
             chain.doFilter(request, response);
+        } catch (ExpiredJwtException | TokenExpiredException e) {
+            resolver.resolveException(request, response, null, new TokenExpiredException("Token expired"));
         } catch (Exception e) {
             logger.error("Error", e);
             resolver.resolveException(request, response, null, e);

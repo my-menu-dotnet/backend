@@ -20,6 +20,9 @@ services:
       - postgres
     env_file:
       - .env
+    restart: always
+    volumes:
+      - ./images:/app/src/main/resources/static/images
 
   postgres:
     image: postgres:16
@@ -33,6 +36,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - spring-network
+    restart: always
+
 volumes:
   postgres_data:
 

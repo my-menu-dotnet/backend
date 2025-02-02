@@ -61,6 +61,8 @@ public class User implements UserDetails, Timestamped {
     private Address address;
 
     @ManyToMany(fetch = FetchType.EAGER)
+    @JsonIgnore
+    @Deprecated
     private List<Company> companies;
 
     @Column(name = "is_verified_email")
@@ -135,6 +137,14 @@ public class User implements UserDetails, Timestamped {
 
     public boolean isVerifiedEmail() {
         return true;
+    }
+
+    @Transient
+    public Company getCompany() {
+        if (this.companies == null || this.companies.isEmpty()) {
+            return null;
+        }
+        return this.companies.getFirst();
     }
 
     @PrePersist

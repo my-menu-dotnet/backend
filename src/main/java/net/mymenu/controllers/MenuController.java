@@ -2,8 +2,10 @@ package net.mymenu.controllers;
 
 import net.mymenu.dto.menu.MenuDTO;
 import net.mymenu.exception.NotFoundException;
+import net.mymenu.models.Banner;
 import net.mymenu.models.Category;
 import net.mymenu.models.Company;
+import net.mymenu.repository.BannerRepository;
 import net.mymenu.repository.CategoryRepository;
 import net.mymenu.repository.CompanyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,9 @@ public class MenuController {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private BannerRepository bannerRepository;
+
     @GetMapping("/{companyId}")
     public ResponseEntity<MenuDTO> searchByCompanyId(@PathVariable String companyId) {
         UUID id = null;
@@ -42,12 +47,13 @@ public class MenuController {
         List<Category> categories = categoryRepository.findAllByCompanyId(company.getId())
                 .orElseThrow(() -> new NotFoundException("Category not found"));
 
-        MenuDTO menuDTO = MenuDTO
+        List<Banner> banners = bannerRepository.findAllByCompany(company);
+
+        return ResponseEntity.status(HttpStatus.OK).body(MenuDTO
                 .builder()
+                .banners(banners)
                 .company(company)
                 .categories(categories)
-                .build();
-
-        return ResponseEntity.status(HttpStatus.OK).body(menuDTO);
+                .build());
     }
 }

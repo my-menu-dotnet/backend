@@ -57,6 +57,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/logout").permitAll()
                         .requestMatchers("/file/**").permitAll()
                         .requestMatchers("/menu/**").permitAll()
+                        .requestMatchers("/home/**").permitAll()
                         .anyRequest().authenticated())
                 .authenticationManager(authenticationManager)
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)

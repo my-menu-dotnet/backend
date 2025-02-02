@@ -42,9 +42,6 @@ public class CompanyRequest {
     @JsonProperty("image_id")
     private UUID imageId;
 
-    @JsonProperty("header_id")
-    private UUID headerId;
-
     @Valid
     private AddressRequest address;
 }

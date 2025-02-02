@@ -38,11 +38,6 @@ public class CompanyController {
         FileStorage image = companyService.findImage(company.getImageId());
         Address address = companyService.buildAddress(company.getAddress());
 
-        FileStorage header = null;
-        if (company.getHeaderId() != null) {
-            header = companyService.findImage(company.getHeaderId());
-        }
-
         Company newCompany = Company.builder()
                 .name(company.getName())
                 .cnpj(company.getCnpj())
@@ -51,7 +46,6 @@ public class CompanyController {
                 .phone(company.getPhone())
                 .categories(categories)
                 .image(image)
-                .header(header)
                 .address(address)
                 .url(UUID.randomUUID().toString())
                 .build();
@@ -72,11 +66,6 @@ public class CompanyController {
         FileStorage image = companyService.findImage(company.getImageId());
         Address address = companyToUpdate.getAddress();
 
-        FileStorage header = companyToUpdate.getHeader();
-        if (company.getHeaderId() != null) {
-            header = companyService.findImage(company.getHeaderId());
-        }
-
         if (address != null) {
             address.setStreet(company.getAddress().getStreet());
             address.setNumber(company.getAddress().getNumber());
@@ -95,7 +84,6 @@ public class CompanyController {
         companyToUpdate.setPrimaryColor(company.getPrimaryColor());
         companyToUpdate.setPhone(company.getPhone());
         companyToUpdate.setImage(image);
-        companyToUpdate.setHeader(header);
         companyToUpdate.setAddress(address);
 
         companyRepository.saveAndFlush(companyToUpdate);

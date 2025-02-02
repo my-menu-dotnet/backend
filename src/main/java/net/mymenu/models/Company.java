@@ -61,9 +61,6 @@ public class Company implements Timestamped {
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private FileStorage image;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private FileStorage header;
-
     @Column(name = "delivery", nullable = false)
     @ColumnDefault("false")
     private boolean delivery;

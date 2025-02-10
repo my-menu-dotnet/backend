@@ -3,6 +3,7 @@ package net.mymenu.models;
 import jakarta.persistence.*;
 import lombok.*;
 import net.mymenu.enums.banner.BannerRedirect;
+import net.mymenu.enums.banner.BannerType;
 import net.mymenu.interfaces.Timestamped;
 import net.mymenu.listeners.TimestampedListener;
 
@@ -23,12 +24,24 @@ public class Banner implements Timestamped {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "title")
+    private String title;
+
+    @Column(name = "description")
+    private String description;
+
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private FileStorage image;
 
     @Column(name = "redirect")
     @Enumerated(EnumType.STRING)
     private BannerRedirect redirect;
+
+    @ManyToOne
+    private Category category;
+
+    @ManyToOne
+    private Food food;
 
     @Column(name = "url")
     private String url;
@@ -38,6 +51,10 @@ public class Banner implements Timestamped {
 
     @Column(name = "active")
     private Boolean active;
+
+    @Column(name = "type")
+    @Enumerated(EnumType.STRING)
+    private BannerType type;
 
     @ManyToOne
     private Company company;

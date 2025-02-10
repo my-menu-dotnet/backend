@@ -7,6 +7,7 @@ import net.mymenu.models.FileStorage;
 import net.mymenu.repository.CategoryRepository;
 import net.mymenu.repository.FileStorageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +21,9 @@ public class CompanyService {
 
     @Autowired
     private FileStorageRepository fileStorageRepository;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     public List<Category> findCategories(List<UUID> categoryIds) {
         return categoryRepository.findAllByIdList(categoryIds)
@@ -41,5 +45,10 @@ public class CompanyService {
                 .state(addressRequest.getState())
                 .zipCode(addressRequest.getZipCode())
                 .build();
+    }
+
+    public byte[] generateQrCode(UUID companyId, String logoName) throws Exception {
+        String url = frontendUrl + "/" + companyId;
+        return QRCodeService.generateQRCodeImageBytes(url, logoName);
     }
 }

@@ -1,5 +1,7 @@
 package net.mymenu.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import net.mymenu.dto.CompanyRequest;
 import net.mymenu.models.*;
 import net.mymenu.repository.CompanyRepository;
@@ -7,6 +9,7 @@ import net.mymenu.security.JwtHelper;
 import jakarta.validation.Valid;
 import net.mymenu.service.CompanyService;
 import net.mymenu.service.QRCodeService;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +31,9 @@ public class CompanyController {
 
     @Autowired
     private CompanyService companyService;
+
+    @Autowired
+    private QRCodeService qrCodeService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -93,14 +99,18 @@ public class CompanyController {
 
     @GetMapping("/qr-code")
     public ResponseEntity<byte[]> getCompanyQrCode() {
-        User user = jwtHelper.extractUser();
-        Company company = user.getCompany();
+        try {
+            User user = jwtHelper.extractUser();
+            Company company = user.getCompany();
 
-        byte[] qrCode = QRCodeService.generateQRCodeImage(company.getId().toString());
+            byte[] qrCode = companyService.generateQrCode(company.getId(), company.getImage().getFileName());
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .header("Content-Type", "image/png")
-                .body(qrCode);
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .header("Content-Type", "image/png")
+                    .body(qrCode);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

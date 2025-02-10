@@ -62,8 +62,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 for (Cookie cookie : request.getCookies()) {
                     if ("accessToken".equals(cookie.getName())) {
                         jwt = cookie.getValue();
-                        email = jwtHelper.extractEmail(jwt);
-                        break;
+                        if (jwt != null && !jwt.isEmpty()) {
+                            email = jwtHelper.extractEmail(jwt);
+                            break;
+                        }
                     }
                 }
             }

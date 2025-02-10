@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import net.mymenu.dto.discount.DiscountDTO;
 import net.mymenu.dto.discount.DiscountRequest;
 import net.mymenu.enums.DiscountStatus;
+import net.mymenu.exception.DuplicateException;
 import net.mymenu.exception.NotFoundException;
 import net.mymenu.mapper.DiscountMapper;
 import net.mymenu.models.Food;
@@ -79,7 +80,7 @@ public class DiscountController {
 
         if (discountRequest.getStatus() == DiscountStatus.ACTIVE
                 && food.getDiscounts().stream().anyMatch(discount -> discount.getStatus().equals(DiscountStatus.ACTIVE))) {
-            throw new NotFoundException("Food already has a discount active");
+            throw new DuplicateException("Food already has a discount active");
         }
 
         Discount discount = Discount

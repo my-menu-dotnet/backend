@@ -7,6 +7,7 @@ import net.mymenu.interfaces.Timestamped;
 import net.mymenu.listeners.TimestampedListener;
 import jakarta.persistence.*;
 import lombok.*;
+import net.mymenu.models.food_item.FoodItemCategory;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -63,6 +64,12 @@ public class Food implements Timestamped {
     @JoinColumn(name = "category_id")
     @JsonIgnoreProperties("foods")
     private Category category;
+
+    @OneToMany(mappedBy = "food")
+    @JsonManagedReference
+    @JsonProperty("item_categories")
+    @OrderBy("order")
+    private List<FoodItemCategory> itemCategories;
 
     @OneToMany(mappedBy = "food", cascade = CascadeType.ALL)
     @JsonManagedReference

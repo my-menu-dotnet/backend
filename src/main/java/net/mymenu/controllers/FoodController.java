@@ -3,13 +3,15 @@ package net.mymenu.controllers;
 import net.mymenu.dto.food.FoodRequest;
 import net.mymenu.exception.NotFoundException;
 import net.mymenu.models.*;
+import net.mymenu.models.Food;
 import net.mymenu.repository.CategoryRepository;
-import net.mymenu.repository.CompanyRepository;
 import net.mymenu.repository.FileStorageRepository;
 import net.mymenu.repository.FoodRepository;
 import net.mymenu.security.JwtHelper;
 import net.mymenu.service.FoodService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,6 +37,13 @@ public class FoodController {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @GetMapping
+    public ResponseEntity<Page<Food>> listAll(Pageable pageable) {
+        Company company = jwtHelper.extractUser().getCompany();
+        Page<Food> foods = foodRepository.findByFilter(company, pageable);
+        return ResponseEntity.status(HttpStatus.OK).body(foods);
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Food> find(@PathVariable UUID id) {

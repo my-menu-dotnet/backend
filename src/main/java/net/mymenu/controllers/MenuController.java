@@ -47,7 +47,7 @@ public class MenuController {
         List<Category> categories = categoryRepository.findAllByCompanyId(company.getId())
                 .orElseThrow(() -> new NotFoundException("Category not found"));
 
-        List<Banner> banners = bannerRepository.findAllByCompany(company);
+        List<Banner> banners = bannerRepository.findAllByCompanyAndActiveIsTrue(company);
 
         return ResponseEntity.status(HttpStatus.OK).body(MenuDTO
                 .builder()

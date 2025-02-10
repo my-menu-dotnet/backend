@@ -1,6 +1,3 @@
-ALTER TABLE company
-    DROP CONSTRAINT fktrumv39qyfo3984c0akh1jrss;
-
 CREATE TABLE food_item
 (
     id             UUID NOT NULL,
@@ -32,4 +29,4 @@ ALTER TABLE food_item
     ADD CONSTRAINT FK_FOOD_ITEM_ON_CATEGORY FOREIGN KEY (category_id) REFERENCES food_item_category (id);
 
 ALTER TABLE company
-    DROP COLUMN header_id;
+    DROP COLUMN IF EXISTS header_id;

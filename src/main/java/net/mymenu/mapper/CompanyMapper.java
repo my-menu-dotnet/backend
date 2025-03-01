@@ -14,8 +14,4 @@ public interface CompanyMapper {
     @Mapping(target = "email", constant = "***")
     @Mapping(target = "phone", constant = "***")
     Company toRestrictCompany(Company company);
-
-    @Mapping(target = ".", qualifiedByName = "toRestrictCompany")
-    List<Company> toRestrictListCompany(List<Company> company);
-
 }

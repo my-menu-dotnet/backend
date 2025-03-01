@@ -44,10 +44,10 @@ public class MenuController {
         Company company = companyRepository.findByIdOrUrl(id, companyId)
                 .orElseThrow(() -> new NotFoundException("Company not found"));
 
-        List<Category> categories = categoryRepository.findAllByCompanyId(company.getId())
+        List<Category> categories = categoryRepository.findAllByTenantId(company.getId())
                 .orElseThrow(() -> new NotFoundException("Category not found"));
 
-        List<Banner> banners = bannerRepository.findAllByCompanyAndActiveIsTrue(company);
+        List<Banner> banners = bannerRepository.findAllByTenantId(company.getId());
 
         return ResponseEntity.status(HttpStatus.OK).body(MenuDTO
                 .builder()

@@ -11,11 +11,4 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface FoodRepository extends JpaRepository<Food, UUID> {
-
-    @Query("SELECT f FROM Food f WHERE f.id = :id AND f.company.id = :companyId")
-    Optional<Food> findByIdAndCompanyId(@Param("id") UUID id, @Param("companyId") UUID companyId);
-
-    @Query("SELECT f FROM Food f WHERE f.company = :company")
-    Page<Food> findByFilter(@Param("company") Company company, Pageable pageable);
-}
+public interface FoodRepository extends JpaRepository<Food, UUID> { }

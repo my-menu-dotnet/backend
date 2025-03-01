@@ -5,6 +5,7 @@ import net.mymenu.enums.analytics.AccessWays;
 import net.mymenu.enums.analytics.ContactWays;
 import net.mymenu.models.Company;
 import jakarta.persistence.*;
+import net.mymenu.tenant.BaseEntity;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -16,14 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
-public class CompanyAccess {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(name = "id", unique = true)
-    private Integer id;
-
-    @Column(name = "company_id")
-    private UUID companyId;
+public class CompanyAccess extends BaseEntity {
 
     @Column(name = "ip")
     private String ip;
@@ -50,12 +44,4 @@ public class CompanyAccess {
     @Column(name = "contacted_from")
     @Enumerated(EnumType.STRING)
     private ContactWays contactedFrom;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @PrePersist
-    public void prePersist() {
-        this.createdAt = LocalDateTime.now();
-    }
 }

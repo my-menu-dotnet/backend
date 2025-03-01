@@ -37,9 +37,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private JwtHelper jwtHelper;
 
     @Autowired
-    private CookieService cookieService;
-
-    @Autowired
     @Qualifier("handlerExceptionResolver")
     private HandlerExceptionResolver resolver;
 
@@ -53,11 +50,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String jwt = null;
 
         try {
-            if (uri.equals("/auth/refresh-token") || uri.equals("/auth/logout")) {
-                chain.doFilter(request, response);
-                return;
-            }
-
             if (request.getCookies() != null) {
                 for (Cookie cookie : request.getCookies()) {
                     if ("accessToken".equals(cookie.getName())) {
@@ -71,13 +63,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
 
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                User user;
-
-                if (email.equals(jwtHelper.ANONYMOUS)) {
-                    user = createGuestUser();
-                } else {
-                    user = userService.loadUserByEmail(email);
-                }
+                User user = userService.loadUserByEmail(email);
 
                 validateExpiredToken(jwt, email);
                 validateUserVerifiedEmail(user, uri);
@@ -106,13 +92,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         }
     }
 
-    private User createGuestUser() {
-        return User
-                .builder()
-                .email(jwtHelper.ANONYMOUS)
-                .isVerifiedEmail(true)
-                .isActive(true)
-                .build();
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        return uri.equals("/auth/refresh-token") || uri.equals("/auth/logout");
     }
 
     private void validateExpiredToken(String jwt, String email) {

@@ -11,6 +11,7 @@ import net.mymenu.repository.CategoryRepository;
 import net.mymenu.repository.CompanyRepository;
 import net.mymenu.security.JwtHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,32 +29,20 @@ public class CategoryController {
     @Autowired
     private CompanyRepository companyRepository;
 
-    @Autowired
-    private JwtHelper jwtHelper;
-
     @GetMapping("/me")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Category>> find() {
-        User user = jwtHelper.extractUser();
-
-        List<Category> categoriesOrdered = user
-                .getCompanies()
-                .getFirst()
-                .getCategories();
-
+        List<Category> categoriesOrdered = categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "order"));
         return ResponseEntity.status(HttpStatus.OK).body(categoriesOrdered);
     }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Category> create(@RequestBody CategoryRequest categoryRequest) {
-        User user = jwtHelper.extractUser();
-
         Category category = Category
                 .builder()
                 .name(categoryRequest.getName())
                 .status(categoryRequest.getStatus())
-                .company(user.getCompanies().getFirst())
                 .build();
 
         categoryRepository.saveAndFlush(category);
@@ -79,22 +68,14 @@ public class CategoryController {
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public ResponseEntity<?> delete(@PathVariable UUID categoryId) {
-        User user = jwtHelper.extractUser();
-
-        Company company = user.getCompanies().getFirst();
-        company.getCategories().removeIf(c -> c.getId().equals(categoryId));
-
-        companyRepository.save(company);
-
+        companyRepository.removeById(categoryId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @PutMapping("/order")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateOrder(@RequestBody CategoryOrder categoryOrder) {
-        User user = jwtHelper.extractUser();
-
-        List<Category> categories = user.getCompanies().getFirst().getCategories();
+        List<Category> categories = categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "order"));
 
         int i = 0;
         for (UUID order : categoryOrder.getIds()) {
@@ -115,13 +96,11 @@ public class CategoryController {
     @GetMapping("/select")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> select() {
-        User user = jwtHelper.extractUser();
+        List<Category> categories = categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "order"));
 
-        Company company = user.getCompanies().getFirst();
-
-        Map<String, String> categories = company.getCategories().parallelStream()
+        Map<String, String> selectCategories = categories.parallelStream()
                 .collect(HashMap::new, (m, c) -> m.put(c.getId().toString(), c.getName()), Map::putAll);
 
-        return ResponseEntity.status(HttpStatus.OK).body(categories);
+        return ResponseEntity.status(HttpStatus.OK).body(selectCategories);
     }
 }

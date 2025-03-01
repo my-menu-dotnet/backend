@@ -61,6 +61,9 @@ public class Company implements Timestamped {
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private FileStorage image;
 
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private FileStorage header;
+
     @Column(name = "delivery", nullable = false)
     @ColumnDefault("false")
     private boolean delivery;
@@ -76,11 +79,6 @@ public class Company implements Timestamped {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "address_id", referencedColumnName = "id")
     private Address address;
-
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    @OrderBy("order ASC")
-    private List<Category> categories;
 
     @ManyToMany
     private List<AllowedField> allowedField;

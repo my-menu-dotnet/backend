@@ -111,7 +111,7 @@ public class AuthController {
                 if (!emailCodeService.validateCompanyEmailCode(user, authVerifyEmail.getCode())) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
                 }
-                user.getCompanies().getFirst().setVerifiedEmail(true);
+                user.getCompany().setVerifiedEmail(true);
                 userRepository.save(user);
                 break;
             default:
@@ -130,18 +130,6 @@ public class AuthController {
             emailCodeService.sendCompanyEmail();
         }
         return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
-    @PostMapping("/login/anonymous")
-    @Deprecated
-    public ResponseEntity<?> loginAnonymous() {
-        String jwt = jwtHelper.generateAnonymousToken();
-        ResponseCookie cookieAccessToken = cookieService.createAccessTokenCookie(jwt);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .header(HttpHeaders.SET_COOKIE, cookieAccessToken.toString())
-                .build();
     }
 
     @PostMapping("/logout")

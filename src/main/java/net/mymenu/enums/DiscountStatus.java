@@ -3,6 +3,6 @@ package net.mymenu.enums;
 public enum DiscountStatus {
     ACTIVE,
     INACTIVE,
-    PENDING,
+    SCHEDULED,
     EXPIRED
 }

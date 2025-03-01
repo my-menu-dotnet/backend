@@ -1,5 +1,6 @@
 package net.mymenu.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import net.mymenu.constraints.CEP;
 import net.mymenu.constraints.State;
 import net.mymenu.interfaces.Timestamped;
@@ -8,7 +9,11 @@ import net.mymenu.listeners.TimestampedListener;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
+import net.mymenu.tenant.BaseEntity;
+import net.mymenu.tenant.TenantContext;
+import org.hibernate.annotations.TenantId;
 
+import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -19,11 +24,12 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@EntityListeners({TimestampedListener.class, CoordinatesEntityListener.class})
+@EntityListeners({CoordinatesEntityListener.class, TimestampedListener.class})
 public class Address implements Timestamped {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "street")
@@ -63,4 +69,5 @@ public class Address implements Timestamped {
     @Column(name = "updated_at")
     @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
+
 }

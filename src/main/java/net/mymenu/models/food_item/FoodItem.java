@@ -8,23 +8,19 @@ import net.mymenu.interfaces.Timestamped;
 import net.mymenu.listeners.TimestampedListener;
 import net.mymenu.models.FileStorage;
 import net.mymenu.models.Food;
+import net.mymenu.tenant.BaseEntity;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "food_item")
-@EntityListeners(TimestampedListener.class)
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class FoodItem implements Timestamped {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class FoodItem extends BaseEntity {
 
     @Column(name = "title")
     private String title;
@@ -44,12 +40,4 @@ public class FoodItem implements Timestamped {
     @ManyToOne
     @JsonBackReference
     private FoodItemCategory category;
-
-    @Column(name = "created_at")
-    @JsonProperty("created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    @JsonProperty("updated_at")
-    private LocalDateTime updatedAt;
 }

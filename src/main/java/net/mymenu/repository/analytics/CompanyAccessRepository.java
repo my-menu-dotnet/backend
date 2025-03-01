@@ -8,9 +8,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CompanyAccessRepository extends JpaRepository<CompanyAccess, Integer> {
-    List<CompanyAccess> findAllByCompanyId(UUID companyId);
-
-    List<CompanyAccess> findAllByCompanyIdAndAccessedAtBetween(UUID companyId, LocalDateTime start, LocalDateTime end);
-
-    List<CompanyAccess> findAllByCompanyIdAndCreatedAtBetween(UUID companyId, LocalDateTime createdAtAfter, LocalDateTime createdAtBefore);
+    List<CompanyAccess> findAllByCreatedAtBetween(LocalDateTime createdAtAfter, LocalDateTime createdAtBefore);
 }

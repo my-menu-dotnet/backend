@@ -1,6 +1,15 @@
 package net.mymenu.models;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import net.mymenu.enums.order.OrderStatus;
+import net.mymenu.interfaces.Timestamped;
+import net.mymenu.listeners.TimestampedListener;
+import net.mymenu.models.order.OrderItem;
+import net.mymenu.tenant.BaseEntity;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -8,11 +17,11 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "food_order")
-public class Order {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Builder
+public class Order extends BaseEntity {
 
     @Column(name = "table_number")
     private int tableNumber;
@@ -21,17 +30,12 @@ public class Order {
     private double totalPrice;
 
     @Column(name = "status")
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
 
     @OneToMany(cascade = CascadeType.ALL)
-    private List<Food> foods;
+    private List<OrderItem> orderItems;
 
-    @Column(name = "company_id")
-    private UUID companyId;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @ManyToOne
+    private User user;
 }

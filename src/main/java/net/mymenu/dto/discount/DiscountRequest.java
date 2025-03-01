@@ -34,9 +34,8 @@ public class DiscountRequest {
     @NotNull
     private DiscountType type;
 
-    @JsonProperty("status")
     @NotNull
-    private DiscountStatus status;
+    private boolean active;
 
     @JsonProperty("start_at")
     @FutureOrPresent(message = "The start date must be in the present or future")

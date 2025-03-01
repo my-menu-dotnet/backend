@@ -32,15 +32,11 @@ public class CompanyController {
     @Autowired
     private CompanyService companyService;
 
-    @Autowired
-    private QRCodeService qrCodeService;
-
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Company> registerCompany(@Valid @RequestBody CompanyRequest company) {
         User user = jwtHelper.extractUser();
 
-        List<Category> categories = companyService.findCategories(company.getCategories());
         FileStorage image = companyService.findImage(company.getImageId());
         Address address = companyService.buildAddress(company.getAddress());
 
@@ -50,7 +46,6 @@ public class CompanyController {
                 .email(company.getEmail())
                 .primaryColor(company.getPrimaryColor())
                 .phone(company.getPhone())
-                .categories(categories)
                 .image(image)
                 .address(address)
                 .url(UUID.randomUUID().toString())

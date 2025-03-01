@@ -8,6 +8,7 @@ import net.mymenu.listeners.TimestampedListener;
 import jakarta.persistence.*;
 import lombok.*;
 import net.mymenu.models.food_item.FoodItemCategory;
+import net.mymenu.tenant.BaseEntity;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,14 +20,8 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EntityListeners({TimestampedListener.class})
 @Builder
-public class Food implements Timestamped {
-
-    @Id
-    @Column(name = "id", unique = true)
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class Food extends BaseEntity {
 
     @Column(name = "name")
     private String name;
@@ -76,27 +71,12 @@ public class Food implements Timestamped {
     private List<Discount> discounts;
 
     @Transient
-    private Discount activeDiscount;
-
-    @ManyToOne
-    @JoinColumn(name = "company_id")
-    @JsonIgnore
-    private Company company;
-
-    @Column(name = "created_at")
-    @JsonProperty("created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    @JsonProperty("updated_at")
-    private LocalDateTime updatedAt;
-
     public Discount getActiveDiscount() {
         if (this.discounts == null || this.discounts.isEmpty()) {
             return null;
         }
         return this.discounts.stream()
-                .filter(discount -> discount.getStatus() == null || discount.getStatus() == DiscountStatus.ACTIVE)
+                .filter(discount -> discount.getStatus() == DiscountStatus.ACTIVE)
                 .findFirst()
                 .orElse(null);
     }

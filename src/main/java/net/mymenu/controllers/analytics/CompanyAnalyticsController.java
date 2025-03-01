@@ -36,15 +36,15 @@ public class CompanyAnalyticsController {
         return ResponseEntity.ok(companyAccess);
     }
 
-    @GetMapping("/total-access/{companyId}")
-    public ResponseEntity<?> getByCompanyId(@PathVariable UUID companyId) {
+    @GetMapping("/total-access")
+    public ResponseEntity<?> getByCompanyId() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime oneMonthAgo = now.minusMonths(1);
 
         List<CompanyAccess> accesses = companyAccessRepository.
-                findAllByCompanyIdAndCreatedAtBetween(companyId, oneMonthAgo, now);
+                findAllByCreatedAtBetween(oneMonthAgo, now);
         List<CompanyAccess> previousMonthAccesses = companyAccessRepository.
-                findAllByCompanyIdAndCreatedAtBetween(companyId, oneMonthAgo.minusMonths(1), oneMonthAgo);
+                findAllByCreatedAtBetween(oneMonthAgo.minusMonths(1), oneMonthAgo);
 
         int totalAccessLastMonth = accesses.size();
         int totalAccessPreviousMonth = previousMonthAccesses.size();

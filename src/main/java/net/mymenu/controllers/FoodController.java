@@ -7,7 +7,6 @@ import net.mymenu.models.Food;
 import net.mymenu.repository.CategoryRepository;
 import net.mymenu.repository.FileStorageRepository;
 import net.mymenu.repository.FoodRepository;
-import net.mymenu.security.JwtHelper;
 import net.mymenu.service.FoodService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -33,15 +32,11 @@ public class FoodController {
     private FileStorageRepository fileStorageRepository;
 
     @Autowired
-    private JwtHelper jwtHelper;
-
-    @Autowired
     private CategoryRepository categoryRepository;
 
     @GetMapping
     public ResponseEntity<Page<Food>> listAll(Pageable pageable) {
-        Company company = jwtHelper.extractUser().getCompany();
-        Page<Food> foods = foodRepository.findByFilter(company, pageable);
+        Page<Food> foods = foodRepository.findAll(pageable);
         return ResponseEntity.status(HttpStatus.OK).body(foods);
     }
 
@@ -54,9 +49,6 @@ public class FoodController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Food> create(@RequestBody FoodRequest food) {
-        User user = jwtHelper.extractUser();
-        Company company = user.getCompanies().getFirst();
-
         FileStorage image = null;
         if (food.getImageId() != null) {
             image = fileStorageRepository.findById(food.getImageId())
@@ -72,7 +64,6 @@ public class FoodController {
                 .price(food.getPrice())
                 .status(food.getStatus())
                 .image(image)
-                .company(company)
                 .category(category)
                 .glutenFree(food.isGlutenFree())
                 .lactoseFree(food.isLactoseFree())
@@ -89,15 +80,8 @@ public class FoodController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> update(@PathVariable UUID id, @RequestBody FoodRequest food) {
-        User user = jwtHelper.extractUser();
-        Company company = user.getCompanies().getFirst();
-
-        Food existingFood = foodRepository.findByIdAndCompanyId(id, company.getId())
+        Food existingFood = foodRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Food not found"));
-
-        if (!user.getCompanies().contains(existingFood.getCompany())) {
-            throw new SecurityException("You are not allowed to update food for this company");
-        }
 
         Category category = categoryRepository.findById(food.getCategoryId())
                 .orElseThrow(() -> new NotFoundException("Category not found"));

@@ -1,6 +1,5 @@
 package net.mymenu.security;
 
-import net.mymenu.exception.NotFoundException;
 import net.mymenu.models.User;
 import net.mymenu.service.UserService;
 import io.jsonwebtoken.Claims;
@@ -19,8 +18,6 @@ import java.util.function.Function;
 @Component
 public class JwtHelper extends RefreshTokenHelper {
 
-    public final String ANONYMOUS = "anonymous";
-
     @Value("${jwt.secret}")
     private String SECRET;
 
@@ -37,11 +34,6 @@ public class JwtHelper extends RefreshTokenHelper {
         return extractClaim(token, Claims::getSubject);
     }
 
-    public String extractEmail() {
-        String token = extractTokenFromCookie();
-        return extractEmail(token);
-    }
-
     public User extractUser() {
         String token = extractTokenFromCookie();
 
@@ -54,12 +46,13 @@ public class JwtHelper extends RefreshTokenHelper {
         return userService.loadUserByEmail(email);
     }
 
-    public String generateUserToken(User user) {
-        return createToken(user);
+    public Boolean isAuthenticated() {
+        String token = extractTokenFromCookie();
+        return token != null;
     }
 
-    public String generateAnonymousToken() {
-        return createToken(User.builder().email(ANONYMOUS).build());
+    public String generateUserToken(User user) {
+        return createToken(user);
     }
 
     public Boolean validateToken(String token, String email) {
@@ -88,7 +81,7 @@ public class JwtHelper extends RefreshTokenHelper {
                 }
             }
         }
-        throw new SecurityException("Token not found");
+        return null;
     }
 
     private String createToken(User user) {

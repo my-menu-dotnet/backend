@@ -5,9 +5,8 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
-import net.mymenu.interfaces.Timestamped;
-import net.mymenu.listeners.TimestampedListener;
 import net.mymenu.models.Food;
+import net.mymenu.tenant.BaseEntity;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,13 +18,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
-@EntityListeners(TimestampedListener.class)
 @Builder
-public class FoodItemCategory implements Timestamped {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class FoodItemCategory extends BaseEntity {
 
     @Column(name = "title")
     private String title;
@@ -53,12 +47,4 @@ public class FoodItemCategory implements Timestamped {
 
     @Column(name = "\"order\"")
     private Integer order;
-
-    @Column(name = "created_at")
-    @JsonProperty("created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    @JsonProperty("updated_at")
-    private LocalDateTime updatedAt;
 }

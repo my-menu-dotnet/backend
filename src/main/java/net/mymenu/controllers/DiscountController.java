@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,19 +33,16 @@ public class DiscountController {
     private FoodRepository foodRepository;
 
     @Autowired
-    private JwtHelper jwtHelper;
-
-    @Autowired
     private DiscountMapper discountMapper;
 
     @GetMapping
-    public ResponseEntity<List<DiscountDTO>> findSale() {
-        User user = jwtHelper.extractUser();
+    public ResponseEntity<List<DiscountDTO>> listDiscounts() {
+        List<Discount> discounts = discountRepository.findAll();
 
-        List<Discount> discounts = discountRepository.findAllByCompanyOrderByStatus((user.getCompanies().getFirst()))
-                .orElseThrow(() -> new NotFoundException("Discount not found"));
-
-        List<DiscountDTO> discountDTOS = discountMapper.toDiscountDTO(discounts);
+        List<DiscountDTO> discountDTOS = discountMapper.toDiscountDTO(discounts)
+                .stream()
+                .sorted(Comparator.comparing(DiscountDTO::getStatus))
+                .toList();
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -52,10 +50,8 @@ public class DiscountController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DiscountDTO> findSaleById(@PathVariable UUID id) {
-        User user = jwtHelper.extractUser();
-
-        Discount discount = discountRepository.findByIdAndCompany(id, user.getCompanies().getFirst())
+    public ResponseEntity<DiscountDTO> findDiscountById(@PathVariable UUID id) {
+        Discount discount = discountRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Discount not found"));
 
         DiscountDTO discountDTO = discountMapper.toDiscountDTO(discount);
@@ -66,34 +62,25 @@ public class DiscountController {
     }
 
     @PostMapping
-    public ResponseEntity<DiscountDTO> createSale(@RequestBody @Valid DiscountRequest discountRequest) {
-        User user = jwtHelper.extractUser();
+    public ResponseEntity<DiscountDTO> createDiscount(@RequestBody @Valid DiscountRequest discountRequest) {
+        List<Food> foods = foodRepository.findAll();
 
-        List<Food> userFoods = user.getCompanies().getFirst().getCategories().stream()
-                .flatMap(category -> category.getFoods().stream())
-                .toList();
-
-        Food food = userFoods.stream()
+        Food food = foods.stream()
                 .filter(food1 -> food1.getId().equals(discountRequest.getFoodId()))
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Food not found"));
 
-        if (discountRequest.getStatus() == DiscountStatus.ACTIVE
-                && food.getDiscounts().stream().anyMatch(discount -> discount.getStatus().equals(DiscountStatus.ACTIVE))) {
-            throw new DuplicateException("Food already has a discount active");
-        }
-
         Discount discount = Discount
                 .builder()
-                .company(user.getCompanies().getFirst())
                 .type(discountRequest.getType())
-                .status(discountRequest.getStatus())
                 .startAt(discountRequest.getStartAt())
                 .endAt(discountRequest.getEndAt())
                 .discount(discountRequest.getDiscount())
+                .active(discountRequest.isActive())
                 .food(food)
                 .build();
 
+        validateDiscountOverlap(discount);
         discountRepository.saveAndFlush(discount);
 
         DiscountDTO discountDTO = discountMapper.toDiscountDTO(discount);
@@ -110,23 +97,14 @@ public class DiscountController {
 
         Food food = discount.getFood();
 
-        if (food.getId() != discountRequest.getFoodId()) {
-            food = foodRepository.findById(discountRequest.getFoodId())
-                    .orElseThrow(() -> new NotFoundException("Food not found"));
-        }
-
-        if (discountRequest.getStatus() == DiscountStatus.ACTIVE
-                && food.getDiscounts().stream().anyMatch(d -> d.getStatus().equals(DiscountStatus.ACTIVE))) {
-            throw new NotFoundException("Food already has a discount active");
-        }
-
         discount.setType(discountRequest.getType());
-        discount.setStatus(discountRequest.getStatus());
         discount.setStartAt(discountRequest.getStartAt());
         discount.setEndAt(discountRequest.getEndAt());
         discount.setDiscount(discountRequest.getDiscount());
+        discount.setActive(discountRequest.isActive());
         discount.setFood(food);
 
+        validateDiscountOverlap(discount);
         discountRepository.saveAndFlush(discount);
 
         DiscountDTO discountDTO = discountMapper.toDiscountDTO(discount);
@@ -136,4 +114,16 @@ public class DiscountController {
                 .body(discountDTO);
     }
 
+    private void validateDiscountOverlap(Discount discount) {
+        boolean hasOverlap = discountRepository.hasOverlappingActiveDiscount(
+                discount.getFood().getId(),
+                discount.getStartAt(),
+                discount.getEndAt(),
+                discount.getId() != null ? discount.getId() : UUID.randomUUID()
+        );
+
+        if (hasOverlap) {
+            throw new DuplicateException("There is already an active discount for this food in the specified date range");
+        }
+    }
 }

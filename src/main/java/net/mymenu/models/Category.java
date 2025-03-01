@@ -7,6 +7,7 @@ import net.mymenu.interfaces.Timestamped;
 import net.mymenu.listeners.TimestampedListener;
 import jakarta.persistence.*;
 import lombok.*;
+import net.mymenu.tenant.BaseEntity;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
@@ -19,14 +20,8 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@EntityListeners({TimestampedListener.class})
 @Builder
-public class Category implements Timestamped {
-
-    @Id
-    @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class Category extends BaseEntity {
 
     @Column(name = "\"order\"")
     @ColumnDefault("0")
@@ -34,10 +29,6 @@ public class Category implements Timestamped {
 
     @Column(name = "name")
     private String name;
-
-    @ManyToOne(optional = false)
-    @JsonIgnore
-    private Company company;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     @JsonIgnoreProperties("category")
@@ -47,12 +38,6 @@ public class Category implements Timestamped {
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private CategoryStatus status;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 
     @PrePersist
     public void prePersist() {

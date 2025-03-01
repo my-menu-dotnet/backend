@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CompanyRepository extends JpaRepository<Company, UUID> {
-    Optional<Company> findByUrl(String url);
-
     Optional<Company> findByIdOrUrl(UUID id, String url);
+
+    void removeById(UUID id);
 }

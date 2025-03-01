@@ -41,15 +41,14 @@ public class BannerController {
 
     @GetMapping
     public ResponseEntity<Page<Banner>> list(Pageable pageable) {
-        Company company = jwtHelper.extractUser().getCompany();
-        Page<Banner> banners = bannerRepository.findAllByCompany(company, pageable);
+        Page<Banner> banners = bannerRepository.findAll(pageable);
         return ResponseEntity.ok(banners);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Banner> search(@PathVariable UUID id) {
-        Company company = jwtHelper.extractUser().getCompany();
-        Banner banner = bannerRepository.findByIdAndCompany(id, company);
+        Banner banner = bannerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Banner not found"));
         return ResponseEntity.ok(banner);
     }
 
@@ -57,21 +56,19 @@ public class BannerController {
     public Banner create(@RequestBody @Valid BannerRequest bannerRequest) {
         FileStorage image = fileStorageRepository.findById(bannerRequest.getImageId())
                 .orElseThrow(() -> new NotFoundException("Image not found"));
-        Company company = jwtHelper.extractUser().getCompany();
 
         Banner banner = Banner
                 .builder()
                 .title(bannerRequest.getTitle())
                 .description(bannerRequest.getDescription())
                 .image(image)
-                .company(company)
                 .url(bannerRequest.getUrl())
                 .redirect(bannerRequest.getRedirect())
                 .active(bannerRequest.getActive())
                 .type(bannerRequest.getType())
                 .build();
 
-        setOptionalParams(bannerRequest, banner, company);
+        setOptionalParams(bannerRequest, banner);
 
         return bannerRepository.save(banner);
     }
@@ -82,15 +79,13 @@ public class BannerController {
                 .orElseThrow(() -> new NotFoundException("Banner not found"));
         FileStorage image = fileStorageRepository.findById(bannerRequest.getImageId())
                 .orElseThrow(() -> new NotFoundException("Image not found"));
-        Company company = jwtHelper.extractUser().getCompany();
 
         banner.setImage(image);
-        banner.setCompany(company);
         banner.setUrl(bannerRequest.getUrl());
         banner.setRedirect(bannerRequest.getRedirect());
         banner.setActive(bannerRequest.getActive());
 
-        setOptionalParams(bannerRequest, banner, company);
+        setOptionalParams(bannerRequest, banner);
 
         return ResponseEntity.noContent().build();
     }
@@ -98,12 +93,11 @@ public class BannerController {
     @DeleteMapping("/{id}")
     @Transactional
     public ResponseEntity<Void> remove(@PathVariable UUID id) {
-        Company company = jwtHelper.extractUser().getCompany();
-        bannerRepository.removeByIdAndCompany(id, company);
+        bannerRepository.removeById(id);
         return ResponseEntity.noContent().build();
     }
 
-    private void setOptionalParams(@RequestBody @Valid BannerRequest bannerRequest, Banner banner, Company company) {
+    private void setOptionalParams(@RequestBody @Valid BannerRequest bannerRequest, Banner banner) {
         if (bannerRequest.getRedirect() == null) {
             return;
         }
@@ -114,7 +108,7 @@ public class BannerController {
             banner.setCategory(category);
         }
         if (bannerRequest.getRedirect().equals(BannerRedirect.FOOD)) {
-            Food food = foodRepository.findByIdAndCompanyId(bannerRequest.getFoodId(), company.getId())
+            Food food = foodRepository.findById(bannerRequest.getFoodId())
                     .orElseThrow(() -> new NotFoundException("Food not found"));
             banner.setFood(food);
         }

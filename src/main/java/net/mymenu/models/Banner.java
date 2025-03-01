@@ -6,6 +6,7 @@ import net.mymenu.enums.banner.BannerRedirect;
 import net.mymenu.enums.banner.BannerType;
 import net.mymenu.interfaces.Timestamped;
 import net.mymenu.listeners.TimestampedListener;
+import net.mymenu.tenant.BaseEntity;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -17,12 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@EntityListeners({TimestampedListener.class})
-public class Banner implements Timestamped {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class Banner extends BaseEntity {
 
     @Column(name = "title")
     private String title;
@@ -55,13 +51,4 @@ public class Banner implements Timestamped {
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
     private BannerType type;
-
-    @ManyToOne
-    private Company company;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 }

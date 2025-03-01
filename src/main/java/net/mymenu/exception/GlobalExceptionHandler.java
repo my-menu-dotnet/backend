@@ -93,7 +93,7 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
 
-    @ExceptionHandler(SecurityException.class)
+    @ExceptionHandler({SecurityException.class})
     public ResponseEntity<Error> handleSecurityException(SecurityException e) {
         LOGGER.error("Security exception {}", e.getMessage());
 

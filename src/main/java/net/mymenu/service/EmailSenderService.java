@@ -1,57 +1,43 @@
 package net.mymenu.service;
 
-import com.sendgrid.Method;
-import com.sendgrid.Request;
-import com.sendgrid.Response;
-import com.sendgrid.SendGrid;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Content;
-import com.sendgrid.helpers.mail.objects.Email;
-import com.sendgrid.helpers.mail.objects.Personalization;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
+import com.amazonaws.services.simpleemail.model.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
 @Service
 public class EmailSenderService {
 
-    private static final Logger logger = LoggerFactory.getLogger(EmailSenderService.class);
+    private final AmazonSimpleEmailService amazonSimpleEmailService;
 
-    @Value("${sendgrid.api.key}")
-    private String sendGridApiKey;
+    @Autowired
+    private SpringTemplateEngine templateEngine;
 
-    @Value("${sendgrid.email.from}")
+    @Value("${aws.ses.from-email}")
     private String fromEmail;
 
+    @Autowired
+    public EmailSenderService(AmazonSimpleEmailService amazonSimpleEmailService) {
+        this.amazonSimpleEmailService = amazonSimpleEmailService;
+    }
+
     @Async
-    public void sendEmail(Personalization personalization, String templateId) {
-
-        Content content = new Content("text/html", "<--! Email content -->");
-        Mail mail = new Mail();
-
-        mail.setFrom(new Email(fromEmail));
-        mail.addContent(content);
-        mail.setTemplateId(templateId);
-
-        mail.addPersonalization(personalization);
-
-        SendGrid sg = new SendGrid(sendGridApiKey);
-
+    public void sendEmail(String to, String subject, String template, Context body) {
         try {
-            Request request = new Request();
-            request.setMethod(Method.POST);
-            request.setEndpoint("mail/send");
-            request.setBody(mail.build());
+            String htmlBody = templateEngine.process(template, body);
 
-            Response response = sg.api(request);
+            SendEmailRequest request = new SendEmailRequest()
+                    .withDestination(new Destination().withToAddresses(to))
+                    .withMessage(new Message()
+                            .withBody(new Body().withHtml(new Content().withCharset("UTF-8").withData(htmlBody)))
+                            .withSubject(new Content().withCharset("UTF-8").withData(subject)))
+                    .withSource(fromEmail);
 
-            logger.info("Email sent to: " + personalization.getTos().get(0).getEmail());
-            logger.info("Email response: " + response.getStatusCode());
-            logger.info("Email response: " + response.getBody());
-            logger.info("Email response: " + response.getHeaders());
-
+            amazonSimpleEmailService.sendEmail(request);
         } catch (Exception e) {
             e.printStackTrace();
         }

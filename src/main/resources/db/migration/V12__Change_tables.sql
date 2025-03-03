@@ -58,4 +58,4 @@ ALTER TABLE food_order
 DROP SEQUENCE analytic_company_access_seq CASCADE;
 
 ALTER TABLE analytic_company_access
-    ADD id UUID NOT NULL PRIMARY KEY;
+    ADD id UUID NOT NULL PRIMARY KEY DEFAULT gen_random_uuid();

@@ -16,6 +16,6 @@ public class CEPValidator implements ConstraintValidator<CEP, String> {
     }
 
     public static boolean isValid(String cep) {
-        return cep != null && cep.matches("^[0-9]{5}-?[0-9]{3}$");
+        return cep != null && cep.matches("^[0-9]{5}[0-9]{3}$");
     }
 }

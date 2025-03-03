@@ -9,7 +9,6 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "email_code", indexes = {
-        @Index(name = "email_code_user_id_index", columnList = "user_id"),
         @Index(name = "email_code_type_index", columnList = "type"),
         @Index(name = "email_code_code_index", columnList = "code")
 })
@@ -24,8 +23,8 @@ public class EmailCode {
     @Column(name = "id", unique = true)
     private Integer id;
 
-    @Column(name = "user_id")
-    private UUID userId;
+    @Column(name = "email")
+    private String email;
 
     @Column(name = "type")
     @Enumerated(EnumType.STRING)

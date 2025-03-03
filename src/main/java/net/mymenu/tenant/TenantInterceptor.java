@@ -3,8 +3,10 @@ package net.mymenu.tenant;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import net.mymenu.exception.AccountHasNoCompany;
+import net.mymenu.exception.NotFoundException;
 import net.mymenu.models.Company;
 import net.mymenu.models.User;
+import net.mymenu.repository.CompanyRepository;
 import net.mymenu.security.JwtHelper;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,14 +23,18 @@ public class TenantInterceptor implements HandlerInterceptor {
     @Autowired
     private JwtHelper jwtHelper;
 
-    private static final List<String> PUBLIC_URLS = List.of(
-            "/auth/login",
-            "/auth/register",
-            "/auth/refresh-token",
-            "/auth/logout",
+    @Autowired
+    private CompanyRepository companyRepository;
+
+    private static final List<String> FULL_ACCESS_URLS = List.of(
             "/company",
             "/user",
-            "/file/upload"
+            "/auth/refresh-token",
+            "/auth/logout",
+            "/auth/login",
+            "/auth/register",
+            "/file/upload",
+            "/address"
     );
 
     @Override
@@ -38,14 +44,32 @@ public class TenantInterceptor implements HandlerInterceptor {
             @NotNull Object handler) {
         String uri = request.getRequestURI();
 
-        if (!jwtHelper.isAuthenticated() || PUBLIC_URLS.contains(uri)) {
-            return true;
+        UUID tenantId;
+
+        if (uri.startsWith("/menu") || uri.startsWith("/order")) {
+            String companyUrl = request.getHeader("_company");
+            Optional<Company> company = companyRepository.findByUrl(companyUrl);
+
+            tenantId = company.map(Company::getId)
+                    .orElseThrow(() -> new NotFoundException("Company not found"));
+
+        } else {
+            if (!jwtHelper.isAuthenticated() || FULL_ACCESS_URLS.contains(uri)) {
+                return true;
+            }
+
+            User user = jwtHelper.extractUser();
+            tenantId = Optional.ofNullable(user.getCompany())
+                    .map(Company::getId)
+                    .orElseThrow(() -> new AccountHasNoCompany("Account has no company"));
+
         }
 
-        User user = jwtHelper.extractUser();
-        UUID tenantId = Optional.ofNullable(user.getCompany())
-                .map(Company::getId)
-                .orElseThrow(() -> new AccountHasNoCompany("Account has no company"));
+        System.out.println("tenantId = " + tenantId);
+
+        if (tenantId == null) {
+            throw new AccountHasNoCompany("Account has no company");
+        }
 
         TenantContext.setCurrentTenant(tenantId);
 

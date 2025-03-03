@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface EmailCodeRepository extends JpaRepository<EmailCode, Integer> {
-    Optional<List<EmailCode>> findAllByUserIdAndType(UUID userId, EmailCodeType type);
+    Optional<EmailCode> findAllByEmailAndTypeAndCode(String email, EmailCodeType type, String code);
 
-    Optional<List<EmailCode>> findByUserIdAndTypeOrderByCreatedAtDesc(UUID userId, EmailCodeType type);
+    List<EmailCode> findAllByEmailAndTypeOrderByCreatedAtDesc(String email, EmailCodeType type);
 }

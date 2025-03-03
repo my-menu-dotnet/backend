@@ -18,6 +18,9 @@ public class EmailValidator implements ConstraintValidator<Email, String> {
     }
 
     public static boolean isValid(String email) {
-        return email != null && email.matches(EMAIL_REGEX);
+        if (email == null) {
+            return true;
+        }
+        return email.matches(EMAIL_REGEX);
     }
 }

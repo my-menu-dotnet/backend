@@ -83,19 +83,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             logger.error("Error", e);
             resolver.resolveException(request, response, null, e);
-//            ResponseCookie cookieRefreshToken = cookieService.createCookie("refreshToken", "", 0, "/auth");
-//            ResponseCookie cookieAccessToken = cookieService.createCookie("accessToken", "", 0, "/");
-//
-//            response.addHeader(HttpHeaders.SET_COOKIE, cookieRefreshToken.toString());
-//            response.addHeader(HttpHeaders.SET_COOKIE, cookieAccessToken.toString());
-//            response.setStatus(HttpStatus.FORBIDDEN.value());
         }
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        return uri.equals("/auth/refresh-token") || uri.equals("/auth/logout");
+        return uri.equals("/auth/refresh-token") || uri.equals("/auth/logout") || uri.equals("/auth/simplified/verify-email/send");
     }
 
     private void validateExpiredToken(String jwt, String email) {
@@ -105,7 +99,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     }
 
     private void validateUserVerifiedEmail(User user, String uri) {
-        if (!user.isVerifiedEmail() && !uri.equals("/user/me") && !uri.equals("/auth/verify-email/send")) {
+        if (!user.isVerifiedEmail() && !uri.equals("/user") && !uri.equals("/auth/verify-email/send") && !uri.equals("/auth/verify-email")) {
             throw new AccountNotVerifiedException("Account not verified");
         }
     }

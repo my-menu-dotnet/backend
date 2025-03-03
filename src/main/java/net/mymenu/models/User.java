@@ -1,5 +1,6 @@
 package net.mymenu.models;
 
+import jakarta.validation.constraints.NotNull;
 import net.mymenu.constraints.*;
 import net.mymenu.enums.UserRole;
 import net.mymenu.interfaces.Timestamped;
@@ -41,6 +42,7 @@ public class User implements UserDetails, Timestamped {
 
     @Column(name = "email")
     @Email
+    @NotNull
     private String email;
 
     @Column(name = "cpf")
@@ -135,9 +137,6 @@ public class User implements UserDetails, Timestamped {
         return isActive;
     }
 
-    public boolean isVerifiedEmail() {
-        return true;
-    }
 
     @Transient
     public Company getCompany() {

@@ -11,4 +11,6 @@ public interface CompanyRepository extends JpaRepository<Company, UUID> {
     Optional<Company> findByIdOrUrl(UUID id, String url);
 
     void removeById(UUID id);
+
+    Optional<Company> findByUrl(String url);
 }

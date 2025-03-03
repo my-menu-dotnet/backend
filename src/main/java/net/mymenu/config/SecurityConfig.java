@@ -52,9 +52,11 @@ public class SecurityConfig {
                         .requestMatchers("/auth/refresh-token").permitAll()
                         .requestMatchers("/auth/logout").permitAll()
                         .requestMatchers("/file/**").permitAll()
-                        .requestMatchers("/menu/**").permitAll()
+                        .requestMatchers("/menu").permitAll()
                         .requestMatchers("/home/**").permitAll()
                         .requestMatchers("/analytics/**").permitAll()
+                        .requestMatchers("/auth/simplified/verify-email/send").permitAll()
+                        .requestMatchers("/auth/simplified/login").permitAll()
                         .anyRequest().authenticated())
                 .authenticationManager(authenticationManager)
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
@@ -73,8 +75,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(corsAllowedOrigins));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
-        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowedHeaders(List.of("Cache-Control", "Content-Type", "_company"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

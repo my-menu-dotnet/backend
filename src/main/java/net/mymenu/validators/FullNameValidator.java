@@ -18,6 +18,10 @@ public class FullNameValidator implements ConstraintValidator<FullName, String> 
     }
 
     public static boolean isValid(String fullName) {
-        return fullName != null && fullName.matches(FULL_NAME_REGEX);
+        if (fullName == null) {
+            return true;
+        }
+
+        return fullName.matches(FULL_NAME_REGEX);
     }
 }

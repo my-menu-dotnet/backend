@@ -22,6 +22,10 @@ public class PasswordValidator implements ConstraintValidator<Password, String> 
     }
 
     public static boolean isValid(String password) {
-        return password != null && password.matches(PASSWORD_REGEX);
+        if (password == null) {
+            return true;
+        }
+
+        return password.matches(PASSWORD_REGEX);
     }
 }

@@ -11,10 +11,7 @@ import net.mymenu.repository.CompanyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,22 +29,13 @@ public class MenuController {
     @Autowired
     private BannerRepository bannerRepository;
 
-    @GetMapping("/{companyId}")
-    public ResponseEntity<MenuDTO> searchByCompanyId(@PathVariable String companyId) {
-        UUID id = null;
-
-        try {
-            id = UUID.fromString(companyId);
-        } catch (IllegalArgumentException _) {
-        }
-
-        Company company = companyRepository.findByIdOrUrl(id, companyId)
+    @GetMapping
+    public ResponseEntity<MenuDTO> searchByCompanyId(@RequestHeader("_company") String companyUrl) {
+        Company company = companyRepository.findByUrl(companyUrl)
                 .orElseThrow(() -> new NotFoundException("Company not found"));
 
-        List<Category> categories = categoryRepository.findAllByTenantId(company.getId())
-                .orElseThrow(() -> new NotFoundException("Category not found"));
-
-        List<Banner> banners = bannerRepository.findAllByTenantId(company.getId());
+        List<Category> categories = categoryRepository.findAll();
+        List<Banner> banners = bannerRepository.findAll();
 
         return ResponseEntity.status(HttpStatus.OK).body(MenuDTO
                 .builder()

@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OrderService {
@@ -27,6 +28,9 @@ public class OrderService {
 
     @Autowired
     private JwtHelper jwtHelper;
+
+    @Autowired
+    private MercadoPagoService mercadoPagoService;
 
     public OrderItem createOrderItem(OrderItemRequest orderItemRequest) {
         Food food = foodRepository.findById(orderItemRequest.getItemId())
@@ -42,23 +46,28 @@ public class OrderService {
                 .category(food.getCategory().getName())
                 .build();
 
-        orderItemRequest.getItems().forEach(item -> {
-            FoodItem foodItem = foodItemRepository.findById(item.getItemId())
-                    .orElseThrow(() -> new NotFoundException("Food not found"));
+        List<OrderItem> orderItemList = new java.util.ArrayList<>(List.of());
 
-            OrderItem orderItemExtraFood = OrderItem
-                    .builder()
-                    .title(foodItem.getTitle())
-                    .description(foodItem.getDescription())
-                    .unitPrice(foodItem.getPriceIncrease())
-                    .quantity(item.getQuantity())
-                    .image(foodItem.getImage())
-                    .category(foodItem.getCategory().getTitle())
-                    .build();
+        Optional.ofNullable(orderItemRequest.getItems())
+                .orElse(List.of())
+                .forEach(item -> {
+                    FoodItem foodItem = foodItemRepository.findById(item.getItemId())
+                            .orElseThrow(() -> new NotFoundException("Food not found"));
 
-            orderItemFood.getOrderItems().add(orderItemExtraFood);
-        });
+                    OrderItem orderItemExtraFood = OrderItem
+                            .builder()
+                            .title(foodItem.getTitle())
+                            .description(foodItem.getDescription())
+                            .unitPrice(foodItem.getPriceIncrease())
+                            .quantity(item.getQuantity())
+                            .image(foodItem.getImage())
+                            .category(foodItem.getCategory().getTitle())
+                            .build();
 
+                    orderItemList.add(orderItemExtraFood);
+                });
+
+        orderItemFood.setOrderItems(orderItemList);
 
         return orderItemFood;
     }

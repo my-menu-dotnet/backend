@@ -1,19 +1,13 @@
 package net.mymenu.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import net.mymenu.constraints.CEP;
 import net.mymenu.constraints.State;
 import net.mymenu.interfaces.Timestamped;
-import net.mymenu.listeners.CoordinatesEntityListener;
 import net.mymenu.listeners.TimestampedListener;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
-import net.mymenu.tenant.BaseEntity;
-import net.mymenu.tenant.TenantContext;
-import org.hibernate.annotations.TenantId;
 
-import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -24,7 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@EntityListeners({CoordinatesEntityListener.class, TimestampedListener.class})
+@EntityListeners({TimestampedListener.class})
 public class Address implements Timestamped {
 
     @Id
@@ -62,6 +56,9 @@ public class Address implements Timestamped {
     @Column(name = "longitude")
     private Double longitude;
 
+    @Column(name = "validated")
+    private Boolean validated;
+
     @Column(name = "created_at")
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
@@ -69,5 +66,10 @@ public class Address implements Timestamped {
     @Column(name = "updated_at")
     @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void removeCepMask() {
+        this.zipCode = this.zipCode.replaceAll("[^0-9]", "");
+    }
 
 }

@@ -1,9 +1,12 @@
 package net.mymenu.service;
 
 import net.mymenu.dto.auth.AuthRegister;
+import net.mymenu.enums.auth.EmailCodeType;
 import net.mymenu.exception.*;
+import net.mymenu.models.auth.EmailCode;
 import net.mymenu.models.auth.RefreshToken;
 import net.mymenu.models.User;
+import net.mymenu.repository.auth.EmailCodeRepository;
 import net.mymenu.repository.auth.RefreshTokenRepository;
 import net.mymenu.repository.UserRepository;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +17,9 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class AuthService {
@@ -29,6 +35,19 @@ public class AuthService {
 
     @Autowired
     private CookieService cookieService;
+
+    public User getSimplifiedUser(String email) {
+        User existingUser = userRepository.findByEmail(email)
+                .orElse(null);
+
+        if (existingUser != null) {
+            return existingUser;
+        }
+
+        return User.builder()
+                .email(email)
+                .build();
+    }
 
     public User registerUser(AuthRegister authRegister) {
         userRepository.findByEmailOrCpf(authRegister.getEmail(), authRegister.getCpf())

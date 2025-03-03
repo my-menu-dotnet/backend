@@ -33,7 +33,10 @@ public class EmailCodeService {
 
     public void sendUserEmail() {
         User user = jwtHelper.extractUser();
+        sendUserEmail(user);
+    }
 
+    public void sendUserEmail(User user) {
         if (user.isVerifiedEmail()) {
             throw new AccountAlreadyVerifiedException("Your account is already verified");
         }
@@ -41,9 +44,13 @@ public class EmailCodeService {
         sendEmailCode(user, EmailCodeType.USER, user.getEmail());
     }
 
+    public void sendUserEmailWithoutVerification(User user) {
+        sendEmailCode(user, EmailCodeType.USER, user.getEmail());
+    }
+
     public void sendCompanyEmail() {
         User user = jwtHelper.extractUser();
-        Company company = user.getCompanies().getFirst();
+        Company company = user.getCompany();
 
         if (!user.isVerifiedEmail()) {
             throw new AccountOwnerNotVerifiedException("Your account is not verified");
@@ -64,15 +71,10 @@ public class EmailCodeService {
     }
 
     private boolean validateEmailCode(User user, String code, EmailCodeType type) {
-        List<EmailCode> emailCodeList = emailCodeRepository.findAllByUserIdAndType(user.getId(), type)
+        EmailCode emailCode = emailCodeRepository.findAllByEmailAndTypeAndCode(user.getEmail(), type, code)
                 .orElseThrow(() -> new NotFoundException("Email code not found"));
 
-        emailCodeRepository.deleteAll(emailCodeList);
-
-        EmailCode emailCode = emailCodeList.stream()
-                .filter(e -> e.getCode().equals(code))
-                .findFirst()
-                .orElseThrow(EmailCodeInvalidException::new);
+        emailCodeRepository.delete(emailCode);
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -85,8 +87,7 @@ public class EmailCodeService {
 
     private void validateEmailCodeCooldown(User user, EmailCodeType type) {
         List<EmailCode> lastUserEmailCode = emailCodeRepository
-                .findByUserIdAndTypeOrderByCreatedAtDesc(user.getId(), type)
-                .orElse(null);
+                .findAllByEmailAndTypeOrderByCreatedAtDesc(user.getEmail(), type);
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -103,9 +104,9 @@ public class EmailCodeService {
         EmailCode emailCode = createEmailCode(user, type);
 
         Context context = new Context();
-        context.setVariable("nome", user.getName().split(" ")[0]);
         context.setVariable("code", emailCode.getCode());
 
+        // TODO: Change this email to the user email
         emailSenderService.sendEmail(
                 "thiago@my-menu.net",
                 "MyMenu - Verifique sua conta",
@@ -116,7 +117,7 @@ public class EmailCodeService {
     private EmailCode createEmailCode(User user, EmailCodeType type) {
         EmailCode emailCode = EmailCode.builder()
                 .code(generateRandomCode())
-                .userId(user.getId())
+                .email(user.getEmail())
                 .type(type)
                 .build();
 

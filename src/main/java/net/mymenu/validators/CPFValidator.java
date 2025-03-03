@@ -18,7 +18,11 @@ public class CPFValidator implements ConstraintValidator<CPF, String> {
     }
 
     public static boolean isValid(String cpf) {
-        if (cpf == null || cpf.length() != 11 || cpf.matches("(\\d)\\1{10}")) {
+        if (cpf == null) {
+            return true;
+        }
+
+        if (cpf.length() != 11 || cpf.matches("(\\d)\\1{10}")) {
             return false;
         }
 

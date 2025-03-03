@@ -34,7 +34,9 @@ public class TenantInterceptor implements HandlerInterceptor {
             "/auth/login",
             "/auth/register",
             "/file/upload",
-            "/address"
+            "/address",
+            "/auth/verify-email/send",
+            "/auth/verify-email"
     );
 
     @Override
@@ -48,6 +50,9 @@ public class TenantInterceptor implements HandlerInterceptor {
 
         if (uri.startsWith("/menu") || uri.startsWith("/order")) {
             String companyUrl = request.getHeader("_company");
+
+            System.out.println(companyUrl);
+
             Optional<Company> company = companyRepository.findByUrl(companyUrl);
 
             tenantId = company.map(Company::getId)

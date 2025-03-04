@@ -30,7 +30,7 @@ public class MenuController {
     private BannerRepository bannerRepository;
 
     @GetMapping
-    public ResponseEntity<MenuDTO> searchByCompanyId(@RequestHeader("_company") String companyUrl) {
+    public ResponseEntity<MenuDTO> searchByCompanyId(@RequestHeader("X-Company-ID") String companyUrl) {
         Company company = companyRepository.findByUrl(companyUrl)
                 .orElseThrow(() -> new NotFoundException("Company not found"));
 

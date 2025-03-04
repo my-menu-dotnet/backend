@@ -49,7 +49,7 @@ public class TenantInterceptor implements HandlerInterceptor {
         UUID tenantId;
 
         if (uri.startsWith("/menu") || uri.startsWith("/order")) {
-            String companyUrl = request.getHeader("_company");
+            String companyUrl = request.getHeader("X-Company-ID");
 
             System.out.println(companyUrl);
 

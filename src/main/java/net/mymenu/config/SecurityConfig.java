@@ -72,14 +72,15 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(corsAllowedOrigins));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH"));
         configuration.setAllowCredentials(true);
-
+        configuration.setAllowedHeaders(List.of("Cache-Control", "Content-Type", "X-Company-ID"));
+        configuration.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().requestMatchers("/images/**", "/ws/**", "/stomp/**", "/app/**");
-    }
+//    @Bean
+//    public WebSecurityCustomizer webSecurityCustomizer() {
+//        return (web) -> web.ignoring().requestMatchers("/images/**", "/ws/**", "/stomp/**", "/app/**");
+//    }
 }

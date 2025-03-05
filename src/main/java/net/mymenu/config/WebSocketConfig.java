@@ -28,22 +28,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes("/app");
-        registry.enableSimpleBroker("/topic", "/user/queue");
-        registry.setUserDestinationPrefix("/user");
-    }
-
-    @Bean
-    WebMvcConfigurer corsConfig() {
-        return new WebMvcConfigurer() {
-
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/ws/**")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH")
-                        .allowedHeaders("*")
-                        .allowCredentials(true)
-                        .allowedOrigins(corsAllowedOrigins);
-            }
-        };
+        registry.enableSimpleBroker("/topic");
     }
 }

@@ -37,7 +37,7 @@ public class User implements UserDetails, Timestamped {
     private UUID id;
 
     @Column(name = "name")
-    @FullName
+//    @FullName
     private String name;
 
     @Column(name = "email")

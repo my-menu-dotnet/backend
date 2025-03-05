@@ -10,6 +10,7 @@ import net.mymenu.models.order.OrderItem;
 import net.mymenu.repository.OrderRepository;
 import net.mymenu.service.OrderService;
 import net.mymenu.service.OrderWebSocketService;
+import net.mymenu.tenant.TenantContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,8 +48,7 @@ public class OrderController {
 
         orderRepository.save(order);
 
-        UUID tenantId = order.getUser().getCompany().getId();
-        orderWebSocketService.sendNotificationToTenant(tenantId, order);
+        orderWebSocketService.sendNotificationToTenant(TenantContext.getCurrentTenant(), order);
 
         return ResponseEntity.ok(order);
     }

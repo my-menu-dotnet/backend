@@ -49,7 +49,7 @@ public class TenantInterceptor implements HandlerInterceptor {
         if (uri.startsWith("/menu") || (uri.startsWith("/order") && method.equals("POST"))) {
             String companyUrl = request.getHeader("X-Company-ID");
 
-            System.out.println(companyUrl);
+            System.out.println("TENATN BY HEADER " + companyUrl);
 
             Optional<Company> company = companyRepository.findByUrl(companyUrl);
 

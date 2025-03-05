@@ -3,6 +3,7 @@ package net.mymenu.controllers;
 import net.mymenu.dto.auth.AuthVerifyEmail;
 import net.mymenu.dto.auth.AuthLogin;
 import net.mymenu.dto.auth.AuthRegister;
+import net.mymenu.dto.auth.GoogleTokenDTO;
 import net.mymenu.enums.auth.EmailCodeType;
 import net.mymenu.exception.NotFoundException;
 import net.mymenu.models.auth.RefreshToken;
@@ -25,14 +26,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/v1/oauth")
 public class AuthController {
 
     @Autowired
     private AuthService authService;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
 
     @Autowired
     private JwtHelper jwtHelper;
@@ -46,32 +44,10 @@ public class AuthController {
     @Autowired
     private CookieService cookieService;
 
-    @Autowired
-    private EmailCodeService emailCodeService;
-
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody AuthLogin authLogin) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authLogin.getEmail(), authLogin.getPassword())
-        );
-
-        final User user = userRepository.findByEmail(authLogin.getEmail())
-                .orElseThrow(() -> new SecurityException("User authenticated but not found"));
-
-        final String jwt = jwtHelper.generateUserToken(user);
-        final String refreshToken = jwtHelper.generateRefreshToken(user);
-
-        return authService.getResponseEntity(user, jwt, refreshToken);
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@Valid @RequestBody AuthRegister authRegister) {
-        User user = authService.registerUser(authRegister);
-
-        final String jwt = jwtHelper.generateUserToken(user);
-        final String refreshToken = jwtHelper.generateRefreshToken(user);
-
-        return authService.getResponseEntity(user, jwt, refreshToken, HttpStatus.CREATED);
+    @PostMapping("/google")
+    public ResponseEntity<?> loginOAuthGoogle(@Valid @RequestBody GoogleTokenDTO googleTokenDTO) {
+        User user = authService.loginOAuthGoogle(googleTokenDTO);
+        return authService.getNewTokensResponseEntity(user);
     }
 
     @PostMapping("/refresh-token")
@@ -86,67 +62,24 @@ public class AuthController {
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new SecurityException("User not found"));
 
-            String jwt = jwtHelper.generateUserToken(user);
-            String newRefreshToken = jwtHelper.generateRefreshToken(user);
-
-            return authService.getResponseEntity(user, jwt, newRefreshToken);
+            return authService.getNewTokensResponseEntity(user);
         } catch (AccountStatusException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 
-    @PostMapping("/verify-email")
-    public ResponseEntity<?> verifyEmail(@Valid @RequestBody AuthVerifyEmail authVerifyEmail) {
-        User user = jwtHelper.extractUser();
-
-        switch (authVerifyEmail.getType()) {
-            case USER:
-                if (!emailCodeService.validateUserEmailCode(user, authVerifyEmail.getCode())) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-                }
-                user.setVerifiedEmail(true);
-                userRepository.save(user);
-                break;
-            case COMPANY:
-                if (!emailCodeService.validateCompanyEmailCode(user, authVerifyEmail.getCode())) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-                }
-                user.getCompany().setVerifiedEmail(true);
-                userRepository.save(user);
-                break;
-            default:
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
-    @PostMapping("/verify-email/send")
-    public ResponseEntity<?> sendEmailCode(@RequestParam EmailCodeType type) {
-        if (type == EmailCodeType.USER) {
-            emailCodeService.sendUserEmail();
-        }
-        if (type == EmailCodeType.COMPANY) {
-            emailCodeService.sendCompanyEmail();
-        }
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@CookieValue(value = "refreshToken", defaultValue = "null") String refreshToken) {
-        if (refreshToken.equals("null")) {
-            return ResponseEntity.status(HttpStatus.OK).build();
-        }
-
         refreshTokenRepository.findById(refreshToken)
                 .ifPresent(refreshTokenEntity -> refreshTokenRepository.delete(refreshTokenEntity));
 
-        ResponseCookie cookieRefreshToken = cookieService.createCookie("refreshToken", "", 0, "/auth");
+        ResponseCookie cookieRefreshToken = cookieService.createCookie("refreshToken", "", 0, "/v1/oauth/refresh-token");
         ResponseCookie cookieAccessToken = cookieService.createCookie("accessToken", "", 0, "/");
+        ResponseCookie cookieIsAuthenticated = cookieService.createIsAuthenticatedCookie(false);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .header(HttpHeaders.SET_COOKIE, cookieRefreshToken.toString(), cookieAccessToken.toString())
+                .header(HttpHeaders.SET_COOKIE, cookieRefreshToken.toString(), cookieAccessToken.toString(), cookieIsAuthenticated.toString())
                 .build();
     }
 }

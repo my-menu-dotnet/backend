@@ -9,6 +9,7 @@ import net.mymenu.models.User;
 import net.mymenu.models.food_item.FoodItem;
 import net.mymenu.models.order.OrderItem;
 import net.mymenu.repository.FoodRepository;
+import net.mymenu.repository.OrderRepository;
 import net.mymenu.repository.food_item.FoodItemRepository;
 import net.mymenu.security.JwtHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,7 @@ public class OrderService {
     private JwtHelper jwtHelper;
 
     @Autowired
-    private MercadoPagoService mercadoPagoService;
+    private OrderRepository orderRepository;
 
     public OrderItem createOrderItem(OrderItemRequest orderItemRequest) {
         Food food = foodRepository.findById(orderItemRequest.getItemId())
@@ -74,16 +75,24 @@ public class OrderService {
 
     public Order createOrder(List<OrderItem> orderItems) {
         User user = jwtHelper.extractUser();
+        Order lastOrder = orderRepository.findLastOrder()
+                .orElse(null);
 
         double totalPrice = orderItems.stream()
                 .mapToDouble(OrderItem::getTotalPrice)
                 .sum();
 
+        int orderNumber = 1;
+        if (lastOrder != null) {
+            orderNumber = lastOrder.getOrderNumber() + 1;
+        }
+
         return Order.builder()
                 .orderItems(orderItems)
                 .totalPrice(totalPrice)
                 .user(user)
-                .status(OrderStatus.PENDING)
+                .status(OrderStatus.CREATED)
+                .orderNumber(orderNumber)
                 .build();
     }
 }

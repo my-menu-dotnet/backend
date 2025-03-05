@@ -66,7 +66,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 User user = userService.loadUserByEmail(email);
 
                 validateExpiredToken(jwt, email);
-                validateUserVerifiedEmail(user, uri);
 
                 UsernamePasswordAuthenticationToken emailPasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(user,
                         null,
@@ -89,18 +88,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        return uri.equals("/auth/refresh-token") || uri.equals("/auth/logout") || uri.equals("/auth/simplified/verify-email/send");
+        return uri.startsWith("/v1/oauth");
     }
 
     private void validateExpiredToken(String jwt, String email) {
         if (!jwtHelper.validateToken(jwt, email)) {
             throw new TokenExpiredException("Token expired");
-        }
-    }
-
-    private void validateUserVerifiedEmail(User user, String uri) {
-        if (!user.isVerifiedEmail() && !uri.equals("/user") && !uri.equals("/auth/verify-email/send") && !uri.equals("/auth/verify-email")) {
-            throw new AccountNotVerifiedException("Account not verified");
         }
     }
 }

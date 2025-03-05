@@ -29,14 +29,11 @@ public class TenantInterceptor implements HandlerInterceptor {
     private static final List<String> FULL_ACCESS_URLS = List.of(
             "/company",
             "/user",
-            "/auth/refresh-token",
-            "/auth/logout",
-            "/auth/login",
-            "/auth/register",
+            "/v1/oauth/refresh-token",
+            "/v1/oauth/logout",
+            "/v1/oauth/google",
             "/file/upload",
-            "/address",
-            "/auth/verify-email/send",
-            "/auth/verify-email"
+            "/address"
     );
 
     @Override
@@ -45,10 +42,11 @@ public class TenantInterceptor implements HandlerInterceptor {
             @NotNull HttpServletResponse response,
             @NotNull Object handler) {
         String uri = request.getRequestURI();
+        String method = request.getMethod();
 
         UUID tenantId;
 
-        if (uri.startsWith("/menu") || uri.startsWith("/order")) {
+        if (uri.startsWith("/menu") || (uri.startsWith("/order") && method.equals("POST"))) {
             String companyUrl = request.getHeader("X-Company-ID");
 
             System.out.println(companyUrl);
@@ -57,7 +55,6 @@ public class TenantInterceptor implements HandlerInterceptor {
 
             tenantId = company.map(Company::getId)
                     .orElseThrow(() -> new NotFoundException("Company not found"));
-
         } else {
             if (!jwtHelper.isAuthenticated() || FULL_ACCESS_URLS.contains(uri)) {
                 return true;

@@ -1,0 +1,1 @@
+CREATE INDEX idx_order_order_number_status ON food_order (order_number, status);

@@ -16,7 +16,15 @@ public class CookieService {
     }
 
     public ResponseCookie createRefreshTokenCookie(String refreshToken) {
-        return createCookie("refreshToken", refreshToken, jwtHelper.REFRESH_EXPIRY_IN_SECONDS, "/auth");
+        return createCookie("refreshToken", refreshToken, jwtHelper.REFRESH_EXPIRY_IN_SECONDS, "/v1/oauth/refresh-token");
+    }
+
+    public ResponseCookie createIsAuthenticatedCookie(Boolean isAuthenticated) {
+        return ResponseCookie.from("is_authenticated", isAuthenticated.toString())
+                .secure(true)
+                .sameSite("None")
+                .path("/")
+                .build();
     }
 
     public ResponseCookie createCookie(String name, String value, int maxAge, String path) {

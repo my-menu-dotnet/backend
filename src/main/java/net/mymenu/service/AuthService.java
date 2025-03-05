@@ -1,25 +1,24 @@
 package net.mymenu.service;
 
-import net.mymenu.dto.auth.AuthRegister;
-import net.mymenu.enums.auth.EmailCodeType;
-import net.mymenu.exception.*;
-import net.mymenu.models.auth.EmailCode;
-import net.mymenu.models.auth.RefreshToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import net.mymenu.dto.auth.GoogleTokenDTO;
 import net.mymenu.models.User;
-import net.mymenu.repository.auth.EmailCodeRepository;
-import net.mymenu.repository.auth.RefreshTokenRepository;
+import net.mymenu.models.auth.RefreshToken;
 import net.mymenu.repository.UserRepository;
-import org.jetbrains.annotations.NotNull;
+import net.mymenu.repository.auth.RefreshTokenRepository;
+import net.mymenu.security.JwtHelper;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Collections;
 
 @Service
 public class AuthService {
@@ -28,7 +27,7 @@ public class AuthService {
     private UserRepository userRepository;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private JwtHelper jwtHelper;
 
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
@@ -36,40 +35,13 @@ public class AuthService {
     @Autowired
     private CookieService cookieService;
 
-    public User getSimplifiedUser(String email) {
-        User existingUser = userRepository.findByEmail(email)
-                .orElse(null);
+    @Value("${google.oauth.client.secret}")
+    private String clientId;
 
-        if (existingUser != null) {
-            return existingUser;
-        }
+    public ResponseEntity<User> getNewTokensResponseEntity(User user) {
+        String jwt = jwtHelper.generateUserToken(user);
+        String newRefreshToken = jwtHelper.generateRefreshToken(user);
 
-        return User.builder()
-                .email(email)
-                .build();
-    }
-
-    public User registerUser(AuthRegister authRegister) {
-        userRepository.findByEmailOrCpf(authRegister.getEmail(), authRegister.getCpf())
-                .ifPresent(_ -> {
-                    throw new DuplicateException("Email or CPF already registered");
-                });
-
-        User user = User.builder()
-                .name(authRegister.getName())
-                .email(authRegister.getEmail())
-                .cpf(authRegister.getCpf())
-                .phone(authRegister.getPhone())
-                .password(passwordEncoder.encode(authRegister.getPassword()))
-                .build();
-
-        userRepository.save(user);
-
-        return user;
-    }
-
-    @NotNull
-    public ResponseEntity<User> getResponseEntity(User user, String jwt, String newRefreshToken, HttpStatus status) {
         RefreshToken newRefreshTokenEntity = RefreshToken
                 .builder()
                 .token(newRefreshToken)
@@ -79,14 +51,54 @@ public class AuthService {
 
         ResponseCookie cookieRefreshToken = cookieService.createRefreshTokenCookie(newRefreshToken);
         ResponseCookie cookieAccessToken = cookieService.createAccessTokenCookie(jwt);
+        ResponseCookie cookieIsAuthenticated = cookieService.createIsAuthenticatedCookie(true);
 
         return ResponseEntity
-                .status(status)
-                .header(HttpHeaders.SET_COOKIE, cookieRefreshToken.toString(), cookieAccessToken.toString())
+                .ok()
+                .header(HttpHeaders.SET_COOKIE, cookieRefreshToken.toString(), cookieAccessToken.toString(), cookieIsAuthenticated.toString())
                 .body(user);
     }
 
-    public ResponseEntity<User> getResponseEntity(User user, String jwt, String newRefreshToken) {
-        return getResponseEntity(user, jwt, newRefreshToken, HttpStatus.OK);
+    public User loginOAuthGoogle(GoogleTokenDTO googleTokenDTO) {
+        GoogleIdToken idToken = verifyIdToken(googleTokenDTO.getCredential());
+        GoogleIdToken.Payload payload = idToken.getPayload();
+
+        return getOrCreateUser(payload);
+    }
+
+    private GoogleIdToken verifyIdToken(String token) {
+        try {
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                    .setAudience(Collections.singletonList(clientId))
+                    .build();
+
+            GoogleIdToken idToken = GoogleIdToken.parse(verifier.getJsonFactory(), token);
+
+            verifier.verify(idToken);
+
+            return idToken;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private User getOrCreateUser(GoogleIdToken.Payload payload) {
+        String firstName = (String) payload.get("given_name");
+        String lastName = (String) payload.get("family_name");
+        String email = payload.getEmail();
+//            String pictureUrl = (String) payload.get("picture");
+
+        User user = userRepository.findByEmail(email).orElse(null);
+
+        if (user == null) {
+            user = User.builder()
+                    .email(email)
+                    .name(firstName + " " + lastName)
+                    .isVerifiedEmail(true)
+                    .build();
+            userRepository.save(user);
+        }
+
+        return user;
     }
 }

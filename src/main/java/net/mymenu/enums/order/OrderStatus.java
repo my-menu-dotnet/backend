@@ -1,7 +1,10 @@
 package net.mymenu.enums.order;
 
 public enum OrderStatus {
-    SUCCESS,
-    PENDING,
-    FAILURE
+    CREATED,
+    ACCEPTED,
+    PRODUCING,
+    READY,
+    DELIVERED,
+    CANCELLED
 }

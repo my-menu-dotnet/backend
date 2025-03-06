@@ -131,6 +131,29 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
+    @DeleteMapping("/{orderId}")
+    @Transactional
+    public ResponseEntity<Void> delete(@PathVariable UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        OrderStatus status = order.getStatus();
+
+        if (status != OrderStatus.CREATED && status != OrderStatus.ACCEPTED) {
+            throw new RuntimeException("Order cannot be deleted");
+        }
+
+        List<Order> orders = orderRepository.findAllByStatus(status).stream()
+                .filter(o -> !o.getId().equals(orderId))
+                .sorted(Comparator.comparingInt(Order::getOrder))
+                .toList();
+
+        orderRepository.delete(order);
+        reorderList(orders);
+
+        return ResponseEntity.noContent().build();
+    }
+
     private void adjustPositionsForInsert(List<Order> orders, int insertPosition) {
         int currentPosition = 1;
 

@@ -93,4 +93,11 @@ public class FoodItemController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<Void> remove(@PathVariable UUID id) {
+        foodItemRepository.removeById(id);
+        return ResponseEntity.noContent().build();
+    }
 }

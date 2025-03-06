@@ -1,12 +1,16 @@
 package net.mymenu.service;
 
+import jakarta.transaction.Transactional;
 import net.mymenu.dto.order.OrderItemRequest;
+import net.mymenu.enums.DiscountType;
 import net.mymenu.enums.order.OrderStatus;
 import net.mymenu.exception.NotFoundException;
+import net.mymenu.models.Discount;
 import net.mymenu.models.Food;
 import net.mymenu.models.Order;
 import net.mymenu.models.User;
 import net.mymenu.models.food_item.FoodItem;
+import net.mymenu.models.order.OrderDiscount;
 import net.mymenu.models.order.OrderItem;
 import net.mymenu.repository.FoodRepository;
 import net.mymenu.repository.OrderRepository;
@@ -15,6 +19,7 @@ import net.mymenu.security.JwtHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,9 +42,22 @@ public class OrderService {
         Food food = foodRepository.findById(orderItemRequest.getItemId())
                 .orElseThrow(() -> new NotFoundException("Food not found"));
 
+        OrderDiscount orderDiscount = null;
+
+        if (orderItemRequest.getDiscountId() != null) {
+            Discount discount = food.getActiveDiscount();
+
+            if (!discount.getId().equals(orderItemRequest.getDiscountId())) {
+                throw new NotFoundException("Discount not found");
+            }
+
+            orderDiscount = createOrderDiscount(discount);
+        }
+
         OrderItem orderItemFood = OrderItem
                 .builder()
                 .title(food.getName())
+                .observation(orderItemRequest.getObservation())
                 .description(food.getDescription())
                 .unitPrice(food.getPrice())
                 .quantity(orderItemRequest.getQuantity())
@@ -47,7 +65,7 @@ public class OrderService {
                 .category(food.getCategory().getName())
                 .build();
 
-        List<OrderItem> orderItemList = new java.util.ArrayList<>(List.of());
+        List<OrderItem> orderItemList = new ArrayList<>(List.of());
 
         Optional.ofNullable(orderItemRequest.getItems())
                 .orElse(List.of())
@@ -69,8 +87,18 @@ public class OrderService {
                 });
 
         orderItemFood.setOrderItems(orderItemList);
+        orderItemFood.setDiscount(orderDiscount);
 
         return orderItemFood;
+    }
+
+    private OrderDiscount createOrderDiscount(Discount discount) {
+        return OrderDiscount.builder()
+                .discount(discount.getDiscount())
+                .type(discount.getType())
+                .startAt(discount.getStartAt())
+                .endAt(discount.getEndAt())
+                .build();
     }
 
     public Order createOrder(List<OrderItem> orderItems) {
@@ -79,7 +107,20 @@ public class OrderService {
                 .orElse(null);
 
         double totalPrice = orderItems.stream()
-                .mapToDouble(OrderItem::getTotalPrice)
+                .mapToDouble((orderItem) -> {
+                    double price = orderItem.getUnitPrice() * orderItem.getQuantity();
+
+                    OrderDiscount discount = orderItem.getDiscount();
+
+                    if (discount != null && discount.getType() == DiscountType.PERCENTAGE) {
+                        price = price - (price * discount.getDiscount() / 100);
+                    }
+                    if (discount != null && discount.getType() == DiscountType.AMOUNT) {
+                        price = price - discount.getDiscount();
+                    }
+
+                    return price;
+                })
                 .sum();
 
         int orderNumber = 1;

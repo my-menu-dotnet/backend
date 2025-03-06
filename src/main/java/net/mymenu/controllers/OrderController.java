@@ -3,11 +3,15 @@ package net.mymenu.controllers;
 import jakarta.transaction.Transactional;
 import net.mymenu.dto.order.OrderItemRequest;
 import net.mymenu.dto.order.OrderRequest;
+import net.mymenu.dto.order.OrderTotalDTO;
 import net.mymenu.enums.order.OrderStatus;
 import net.mymenu.exception.DifferentTotalsOrder;
 import net.mymenu.models.Order;
+import net.mymenu.models.User;
 import net.mymenu.models.order.OrderItem;
 import net.mymenu.repository.OrderRepository;
+import net.mymenu.repository.order.OrderItemRepository;
+import net.mymenu.security.JwtHelper;
 import net.mymenu.service.OrderService;
 import net.mymenu.service.OrderWebSocketService;
 import net.mymenu.tenant.TenantContext;
@@ -29,12 +33,33 @@ public class OrderController {
     private OrderService orderService;
 
     @Autowired
+    private JwtHelper jwtHelper;
+
+    @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private OrderItemRepository orderItemRepository;
 
     @Autowired
     private OrderWebSocketService orderWebSocketService;
 
+    @GetMapping("/user")
+    public ResponseEntity<Page<Order>> findUserOrder(Pageable pageable) {
+        User user = jwtHelper.extractUser();
+        Page<Order> order = orderRepository.findAllByUserOrderByStatus(pageable, user);
+        return ResponseEntity.ok(order);
+    }
+
+    @GetMapping("/user/total")
+    public ResponseEntity<OrderTotalDTO> findUserOrderTotalSum() {
+        User user = jwtHelper.extractUser();
+        Double total = orderRepository.findTotalSumByUser(user);
+        return ResponseEntity.ok(new OrderTotalDTO(total));
+    }
+
     @PostMapping
+    @Transactional
     public ResponseEntity<Order> create(@RequestBody List<OrderItemRequest> orderItemRequests, @RequestParam Double total) {
         List<OrderItem> orderItems = orderItemRequests.stream()
                 .map(orderService::createOrderItem)
@@ -46,6 +71,7 @@ public class OrderController {
             throw new DifferentTotalsOrder();
         }
 
+        orderItemRepository.saveAllAndFlush(orderItems);
         orderRepository.save(order);
 
         orderWebSocketService.sendNotificationToTenant(TenantContext.getCurrentTenant(), order);

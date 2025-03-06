@@ -70,6 +70,10 @@ public class DiscountController {
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Food not found"));
 
+        if (food.getActiveDiscount() != null && discountRequest.isActive()) {
+            throw new DuplicateException("Discount already active");
+        }
+
         Discount discount = Discount
                 .builder()
                 .type(discountRequest.getType())
@@ -96,6 +100,10 @@ public class DiscountController {
                 .orElseThrow(() -> new NotFoundException("Discount not found"));
 
         Food food = discount.getFood();
+
+        if (food.getActiveDiscount() != null && discountRequest.isActive()) {
+            throw new DuplicateException("Discount already active");
+        }
 
         discount.setType(discountRequest.getType());
         discount.setStartAt(discountRequest.getStartAt());

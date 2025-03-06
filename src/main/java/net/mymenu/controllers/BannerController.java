@@ -31,9 +31,6 @@ public class BannerController {
     private FileStorageRepository fileStorageRepository;
 
     @Autowired
-    private JwtHelper jwtHelper;
-
-    @Autowired
     private CategoryRepository categoryRepository;
 
     @Autowired

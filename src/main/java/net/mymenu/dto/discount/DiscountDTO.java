@@ -34,6 +34,8 @@ public class DiscountDTO {
 
     private DiscountStatus status;
 
+    private boolean active;
+
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
 

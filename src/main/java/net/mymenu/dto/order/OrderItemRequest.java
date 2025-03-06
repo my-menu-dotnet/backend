@@ -18,5 +18,10 @@ public class OrderItemRequest {
 
     private int quantity;
 
+    private String observation;
+
+    @JsonProperty("discount_id")
+    private UUID discountId;
+
     private List<OrderItemRequest> items;
 }

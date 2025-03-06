@@ -38,6 +38,9 @@ public class OrderItem extends BaseEntity {
     @Column(name = "quantity")
     private int quantity;
 
+    @Column(name = "observation")
+    private String observation;
+
     @Column(name = "currency")
     @Enumerated(EnumType.STRING)
     @JsonIgnore
@@ -45,6 +48,9 @@ public class OrderItem extends BaseEntity {
 
     @Column(name = "unit_price")
     private double unitPrice;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    private OrderDiscount discount;
 
     @OneToMany(cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;

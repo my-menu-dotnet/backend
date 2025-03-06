@@ -67,6 +67,9 @@ public class OrderController {
 
         Order order = orderService.createOrder(orderItems);
 
+        System.out.println(total);
+        System.out.println(order.getTotalPrice());
+
         if (total != order.getTotalPrice()) {
             throw new DifferentTotalsOrder();
         }

@@ -119,7 +119,11 @@ public class OrderService {
                         price = price - discount.getDiscount();
                     }
 
-                    return price;
+                    double itemsPrice = orderItem.getOrderItems().stream()
+                            .mapToDouble((item) -> item.getUnitPrice() * item.getQuantity())
+                            .sum();
+
+                    return price + itemsPrice;
                 })
                 .sum();
 

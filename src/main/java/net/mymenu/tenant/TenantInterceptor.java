@@ -46,7 +46,7 @@ public class TenantInterceptor implements HandlerInterceptor {
 
         UUID tenantId;
 
-        if (uri.startsWith("/menu") || (uri.startsWith("/order") && method.equals("POST"))) {
+        if (uri.startsWith("/menu") || (uri.startsWith("/order") && method.equals("POST")) || uri.equals("/order/user") || uri.equals("/order/user/total")) {
             String companyUrl = request.getHeader("X-Company-ID");
 
             System.out.println("TENATN BY HEADER " + companyUrl);

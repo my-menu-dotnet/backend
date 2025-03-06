@@ -143,13 +143,7 @@ public class OrderController {
             throw new RuntimeException("Order cannot be deleted");
         }
 
-        List<Order> orders = orderRepository.findAllByStatus(status).stream()
-                .filter(o -> !o.getId().equals(orderId))
-                .sorted(Comparator.comparingInt(Order::getOrder))
-                .toList();
-
         orderRepository.delete(order);
-        reorderList(orders);
 
         return ResponseEntity.noContent().build();
     }

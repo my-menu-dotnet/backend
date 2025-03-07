@@ -149,6 +149,8 @@ public class OrderController {
         orderItemRepository.saveAllAndFlush(orderItems);
         orderRepository.save(order);
 
+        orderWebSocketService.sendNotificationToTenant(TenantContext.getCurrentTenant(), order);
+
         return ResponseEntity.ok(order);
     }
 

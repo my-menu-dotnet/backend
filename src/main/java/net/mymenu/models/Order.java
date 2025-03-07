@@ -36,6 +36,12 @@ public class Order extends BaseEntity {
     @NotNull
     private Integer orderNumber;
 
+    @Column(name = "user_name")
+    private String userName;
+
+    @Column(name = "company_observation")
+    private String companyObservation;
+
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
@@ -46,6 +52,17 @@ public class Order extends BaseEntity {
     @Column(name = "\"order\"")
     private int order;
 
+    @ManyToOne(cascade = CascadeType.ALL)
+    private Address address;
+
     @ManyToOne
     private User user;
+
+    public String getUserName() {
+        return userName != null ? userName : user.getName();
+    }
+
+    public Address getAddress() {
+        return address != null ? address : user.getAddress();
+    }
 }

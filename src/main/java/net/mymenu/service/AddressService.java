@@ -3,6 +3,7 @@ package net.mymenu.service;
 import com.google.maps.model.AddressComponent;
 import com.google.maps.model.AddressComponentType;
 import com.google.maps.model.GeocodingResult;
+import net.mymenu.dto.AddressRequest;
 import net.mymenu.models.Address;
 import net.mymenu.validators.StateValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +67,18 @@ public class AddressService {
 
     private boolean containsType(AddressComponent component, AddressComponentType type) {
         return component.types != null && java.util.Arrays.asList(component.types).contains(type);
+    }
+
+    public Address createAddressFromAddressRequest(AddressRequest addressRequest) {
+        return Address.builder()
+                .city(addressRequest.getCity())
+                .complement(addressRequest.getComplement())
+                .neighborhood(addressRequest.getNeighborhood())
+                .number(addressRequest.getNumber())
+                .state(addressRequest.getState())
+                .street(addressRequest.getStreet())
+                .zipCode(addressRequest.getZipCode())
+                .build();
     }
 
 }

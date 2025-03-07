@@ -1,17 +1,17 @@
 package net.mymenu.controllers;
 
 import jakarta.transaction.Transactional;
-import net.mymenu.dto.order.OrderItemRequest;
-import net.mymenu.dto.order.OrderRequest;
-import net.mymenu.dto.order.OrderTotalDTO;
+import net.mymenu.dto.order.*;
 import net.mymenu.enums.order.OrderStatus;
 import net.mymenu.exception.DifferentTotalsOrder;
+import net.mymenu.models.Address;
 import net.mymenu.models.Order;
 import net.mymenu.models.User;
 import net.mymenu.models.order.OrderItem;
 import net.mymenu.repository.OrderRepository;
 import net.mymenu.repository.order.OrderItemRepository;
 import net.mymenu.security.JwtHelper;
+import net.mymenu.service.AddressService;
 import net.mymenu.service.OrderService;
 import net.mymenu.service.OrderWebSocketService;
 import net.mymenu.tenant.TenantContext;
@@ -44,6 +44,9 @@ public class OrderController {
     @Autowired
     private OrderWebSocketService orderWebSocketService;
 
+    @Autowired
+    private AddressService addressService;
+
     @GetMapping("/user")
     public ResponseEntity<Page<Order>> findUserOrder(Pageable pageable) {
         User user = jwtHelper.extractUser();
@@ -66,9 +69,6 @@ public class OrderController {
                 .toList();
 
         Order order = orderService.createOrder(orderItems);
-
-        System.out.println(total);
-        System.out.println(order.getTotalPrice());
 
         if (total != order.getTotalPrice()) {
             throw new DifferentTotalsOrder();
@@ -110,24 +110,45 @@ public class OrderController {
             List<Order> oldStatusOrders = orderRepository.findAllByStatus(oldStatus).stream()
                     .filter(o -> !o.getId().equals(orderId))
                     .toList();
-            reorderList(oldStatusOrders);
+            orderService.reorderList(oldStatusOrders);
 
             List<Order> newStatusOrders = orderRepository.findAllByStatus(newStatus).stream()
                     .filter(o -> !o.getId().equals(orderId))
                     .sorted(Comparator.comparingInt(Order::getOrder))
                     .toList();
 
-            adjustPositionsForInsert(newStatusOrders, newPosition);
+            orderService.adjustPositionsForInsert(newStatusOrders, newPosition);
         } else {
             List<Order> sameStatusOrders = orderRepository.findAllByStatus(newStatus).stream()
                     .filter(o -> !o.getId().equals(orderId))
                     .sorted(Comparator.comparingInt(Order::getOrder))
                     .toList();
 
-            adjustPositionsForInsert(sameStatusOrders, newPosition);
+            orderService.adjustPositionsForInsert(sameStatusOrders, newPosition);
         }
 
         orderRepository.save(order);
+        return ResponseEntity.ok(order);
+    }
+
+    @PostMapping("/anonymously")
+    @Transactional
+    public ResponseEntity<Order> createManual(@RequestBody OrderCreateRequest orderRequest) {
+        Address address = addressService.createAddressFromAddressRequest(orderRequest.getAddress());
+
+        List<OrderItem> orderItems = orderRequest.getOrderItems().stream()
+                .map(orderService::createOrderItem)
+                .toList();
+
+        Order order = orderService.createOrder(orderItems, null);
+
+        order.setAddress(address);
+        order.setUserName(orderRequest.getUserName());
+        order.setCompanyObservation(orderRequest.getCompanyObservation());
+
+        orderItemRepository.saveAllAndFlush(orderItems);
+        orderRepository.save(order);
+
         return ResponseEntity.ok(order);
     }
 
@@ -146,25 +167,5 @@ public class OrderController {
         orderRepository.delete(order);
 
         return ResponseEntity.noContent().build();
-    }
-
-    private void adjustPositionsForInsert(List<Order> orders, int insertPosition) {
-        int currentPosition = 1;
-
-        for (Order o : orders) {
-            if (currentPosition == insertPosition) {
-                currentPosition++;
-            }
-            o.setOrder(currentPosition++);
-        }
-
-        orderRepository.saveAll(orders);
-    }
-
-    private void reorderList(List<Order> orders) {
-        for (int i = 0; i < orders.size(); i++) {
-            orders.get(i).setOrder(i + 1);
-        }
-        orderRepository.saveAll(orders);
     }
 }

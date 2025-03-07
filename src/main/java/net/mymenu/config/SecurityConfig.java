@@ -53,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/menu").permitAll()
                         .requestMatchers("/home/**").permitAll()
                         .requestMatchers("/analytics/**").permitAll()
+                        .requestMatchers("/order/anonymously").permitAll()
                         .anyRequest().permitAll())
                 .authenticationManager(authenticationManager)
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)

@@ -103,6 +103,10 @@ public class OrderService {
 
     public Order createOrder(List<OrderItem> orderItems) {
         User user = jwtHelper.extractUser();
+        return createOrder(orderItems, user);
+    }
+
+    public Order createOrder(List<OrderItem> orderItems, User user) {
         Order lastOrder = orderRepository.findLastOrder()
                 .orElse(null);
 
@@ -139,5 +143,25 @@ public class OrderService {
                 .status(OrderStatus.CREATED)
                 .orderNumber(orderNumber)
                 .build();
+    }
+
+    public void adjustPositionsForInsert(List<Order> orders, int insertPosition) {
+        int currentPosition = 1;
+
+        for (Order o : orders) {
+            if (currentPosition == insertPosition) {
+                currentPosition++;
+            }
+            o.setOrder(currentPosition++);
+        }
+
+        orderRepository.saveAll(orders);
+    }
+
+    public void reorderList(List<Order> orders) {
+        for (int i = 0; i < orders.size(); i++) {
+            orders.get(i).setOrder(i + 1);
+        }
+        orderRepository.saveAll(orders);
     }
 }

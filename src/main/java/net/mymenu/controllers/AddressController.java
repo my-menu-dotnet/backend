@@ -36,10 +36,14 @@ public class AddressController {
         }
 
         Address newAddress = addressService.getAddressByCep(cep);
-        newAddress.setValidated(true);
+        if (newAddress != null) {
+            newAddress.setValidated(true);
 
-        addressRepository.save(newAddress);
+            addressRepository.save(newAddress);
 
-        return ResponseEntity.ok(newAddress);
+            return ResponseEntity.ok(newAddress);
+        }
+
+        return ResponseEntity.noContent().build();
     }
 }

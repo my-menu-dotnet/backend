@@ -1,18 +1,12 @@
 package net.mymenu.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import net.mymenu.enums.CategoryStatus;
-import net.mymenu.interfaces.Timestamped;
-import net.mymenu.listeners.TimestampedListener;
 import jakarta.persistence.*;
 import lombok.*;
 import net.mymenu.tenant.BaseEntity;
-import org.hibernate.annotations.ColumnDefault;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Table(name = "category")
@@ -24,7 +18,6 @@ import java.util.UUID;
 public class Category extends BaseEntity {
 
     @Column(name = "\"order\"")
-    @ColumnDefault("0")
     private Integer order;
 
     @Column(name = "name")

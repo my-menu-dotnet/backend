@@ -9,5 +9,5 @@ import java.util.UUID;
 public interface BannerRepository extends JpaRepository<Banner, UUID> {
     void removeById(UUID id);
 
-    List<Banner> findAllByTenantId(UUID tenantId);
+    List<Banner> findAllByActiveTrue();
 }

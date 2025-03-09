@@ -1,6 +1,7 @@
 package net.mymenu.controllers;
 
 import net.mymenu.dto.menu.MenuDTO;
+import net.mymenu.enums.CategoryStatus;
 import net.mymenu.exception.NotFoundException;
 import net.mymenu.models.Banner;
 import net.mymenu.models.Category;
@@ -34,8 +35,8 @@ public class MenuController {
         Company company = companyRepository.findByUrl(companyUrl)
                 .orElseThrow(() -> new NotFoundException("Company not found"));
 
-        List<Category> categories = categoryRepository.findAll();
-        List<Banner> banners = bannerRepository.findAll();
+        List<Category> categories = categoryRepository.findAllByStatusOrderByOrder(CategoryStatus.ACTIVE);
+        List<Banner> banners = bannerRepository.findAllByActiveTrue();
 
         return ResponseEntity.status(HttpStatus.OK).body(MenuDTO
                 .builder()

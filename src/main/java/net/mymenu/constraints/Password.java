@@ -1,6 +1,6 @@
 package net.mymenu.constraints;
 
-import net.mymenu.validators.PasswordValidator;
+import net.mymenu.constraints.validators.PasswordValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 

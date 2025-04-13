@@ -2,7 +2,7 @@ package net.mymenu.constraints;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import net.mymenu.validators.DiscountValidator;
+import net.mymenu.constraints.validators.DiscountValidator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

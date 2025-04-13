@@ -1,6 +1,6 @@
 package net.mymenu.constraints;
 
-import net.mymenu.validators.CEPValidator;
+import net.mymenu.constraints.validators.CEPValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 

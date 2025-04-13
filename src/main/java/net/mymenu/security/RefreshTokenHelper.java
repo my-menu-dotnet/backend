@@ -1,6 +1,6 @@
 package net.mymenu.security;
 
-import net.mymenu.models.User;
+import net.mymenu.user.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;

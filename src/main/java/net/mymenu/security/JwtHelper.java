@@ -1,7 +1,7 @@
 package net.mymenu.security;
 
-import net.mymenu.models.User;
-import net.mymenu.service.UserService;
+import net.mymenu.user.User;
+import net.mymenu.user.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

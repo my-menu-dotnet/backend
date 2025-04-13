@@ -1,6 +1,6 @@
 package net.mymenu.constraints;
 
-import net.mymenu.validators.StateValidator;
+import net.mymenu.constraints.validators.StateValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 

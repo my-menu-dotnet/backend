@@ -4,15 +4,14 @@ import com.mercadopago.client.preference.PreferenceClient;
 import com.mercadopago.client.preference.PreferenceItemRequest;
 import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.resources.preference.Preference;
-import net.mymenu.models.Order;
-import net.mymenu.models.order.OrderItem;
+import net.mymenu.order.Order;
+import net.mymenu.order.order_item.OrderItem;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class MercadoPagoService {

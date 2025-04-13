@@ -1,9 +1,8 @@
 package net.mymenu.config;
 
-import net.mymenu.models.User;
-import net.mymenu.repository.UserRepository;
-import net.mymenu.security.JwtHelper;
-import net.mymenu.service.UserService;
+import net.mymenu.user.User;
+import net.mymenu.user.UserRepository;
+import net.mymenu.user.UserService;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

@@ -1,6 +1,6 @@
 package net.mymenu.constraints;
 
-import net.mymenu.validators.PhoneValidator;
+import net.mymenu.constraints.validators.PhoneValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 

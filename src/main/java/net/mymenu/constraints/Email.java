@@ -1,6 +1,6 @@
 package net.mymenu.constraints;
 
-import net.mymenu.validators.EmailValidator;
+import net.mymenu.constraints.validators.EmailValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 

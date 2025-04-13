@@ -5,10 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import net.mymenu.interfaces.TenantAware;
-import net.mymenu.interfaces.Timestamped;
-import net.mymenu.listeners.TenantAwareEntityListener;
-import net.mymenu.listeners.TimestampedListener;
+import net.mymenu.timestamp.Timestamped;
+import net.mymenu.timestamp.TimestampedListener;
 import org.hibernate.annotations.TenantId;
 
 import java.time.LocalDateTime;

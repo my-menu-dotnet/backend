@@ -1,9 +1,10 @@
 package net.mymenu.repository;
 
 import net.mymenu.config.TenantTest;
-import net.mymenu.enums.DiscountType;
-import net.mymenu.models.Discount;
-import net.mymenu.models.Food;
+import net.mymenu.discount.DiscountRepository;
+import net.mymenu.discount.enums.DiscountType;
+import net.mymenu.discount.Discount;
+import net.mymenu.food.Food;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

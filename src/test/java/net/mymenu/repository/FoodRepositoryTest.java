@@ -1,7 +1,8 @@
 package net.mymenu.repository;
 
 import net.mymenu.config.TenantTest;
-import net.mymenu.models.Food;
+import net.mymenu.food.Food;
+import net.mymenu.food.FoodRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 

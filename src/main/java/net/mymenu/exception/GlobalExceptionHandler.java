@@ -1,8 +1,7 @@
 package net.mymenu.exception;
 
 import io.jsonwebtoken.ExpiredJwtException;
-import net.mymenu.dto.Error;
-import net.mymenu.service.CookieService;
+import net.mymenu.auth.CookieService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,47 +28,47 @@ public class GlobalExceptionHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Error> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         Map<String, String> errors = e.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .collect(HashMap::new, (m, v) -> m.put(v.getField(), v.getDefaultMessage()), HashMap::putAll);
 
-        Error error = Error
+        ErrorResponse errorResponse = ErrorResponse
                 .builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message("Invalid request")
                 .data(errors)
                 .build();
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Error> handleIllegalArgumentException(IllegalArgumentException e) {
-        Error error = Error
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        ErrorResponse errorResponse = ErrorResponse
                 .builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message(e.getMessage())
                 .build();
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<Error> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
-        Error error = Error
+    public ResponseEntity<ErrorResponse> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
+        ErrorResponse errorResponse = ErrorResponse
                 .builder()
                 .status(HttpStatus.METHOD_NOT_ALLOWED.value())
                 .message("Method not allowed")
                 .build();
 
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(error);
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(errorResponse);
     }
 
     @ExceptionHandler({BadCredentialsException.class, InternalAuthenticationServiceException.class})
-    public ResponseEntity<Error> handleBadCredentialsException() {
-        Error error = Error
+    public ResponseEntity<ErrorResponse> handleBadCredentialsException() {
+        ErrorResponse errorResponse = ErrorResponse
                 .builder()
                 .status(HttpStatus.FORBIDDEN.value())
                 .message("Invalid credentials")
@@ -77,12 +76,12 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
-                .body(error);
+                .body(errorResponse);
     }
 
     @ExceptionHandler({ExpiredJwtException.class, TokenExpiredException.class})
-    public ResponseEntity<Error> handleExpiredJwtException(Exception e) {
-        Error error = Error
+    public ResponseEntity<ErrorResponse> handleExpiredJwtException(Exception e) {
+        ErrorResponse errorResponse = ErrorResponse
                 .builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .message("Expired token")
@@ -90,11 +89,11 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(error);
+                .body(errorResponse);
     }
 
     @ExceptionHandler({SecurityException.class})
-    public ResponseEntity<Error> handleSecurityException(SecurityException e) {
+    public ResponseEntity<ErrorResponse> handleSecurityException(SecurityException e) {
         LOGGER.error("Security exception {}", e.getMessage());
 
         ResponseCookie cookieRefreshToken = cookieService.createCookie("refreshToken", "", 0, "/auth");
@@ -108,28 +107,28 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MyMenuException.class)
-    public ResponseEntity<Error> handleException(MyMenuException e) {
+    public ResponseEntity<ErrorResponse> handleException(MyMenuException e) {
         LOGGER.info("Unexpected error {}", e.getMessage());
 
         String message = e.getMessage() != null ? e.getMessage() : "Invalid request";
         HttpStatus status = e.getHttpStatus();
 
-        Error error = Error
+        ErrorResponse errorResponse = ErrorResponse
                 .builder()
                 .status(status.value())
                 .message(message)
                 .build();
-        return ResponseEntity.status(status).body(error);
+        return ResponseEntity.status(status).body(errorResponse);
     }
 
     @ExceptionHandler({InternalErrorException.class, Exception.class})
-    public ResponseEntity<Error> handleException(Exception e) {
+    public ResponseEntity<ErrorResponse> handleException(Exception e) {
         LOGGER.error("Internal server error", e);
 
-        Error error = Error
+        ErrorResponse errorResponse = ErrorResponse
                 .builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .build();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 }

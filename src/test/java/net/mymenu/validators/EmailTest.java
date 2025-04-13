@@ -1,5 +1,6 @@
 package net.mymenu.validators;
 
+import net.mymenu.constraints.validators.EmailValidator;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;

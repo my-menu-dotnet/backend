@@ -1,6 +1,6 @@
 package net.mymenu.constraints;
 
-import net.mymenu.validators.CPFValidator;
+import net.mymenu.constraints.validators.CPFValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 

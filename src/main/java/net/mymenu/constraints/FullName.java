@@ -1,6 +1,6 @@
 package net.mymenu.constraints;
 
-import net.mymenu.validators.FullNameValidator;
+import net.mymenu.constraints.validators.FullNameValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 

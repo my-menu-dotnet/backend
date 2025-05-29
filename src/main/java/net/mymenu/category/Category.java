@@ -8,6 +8,7 @@ import net.mymenu.tenant.BaseEntity;
 
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "category")
 @Getter
@@ -15,6 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Data
 public class Category extends BaseEntity {
 
     @Column(name = "\"order\"")
@@ -25,7 +27,7 @@ public class Category extends BaseEntity {
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     @JsonIgnoreProperties("category")
-    @OrderBy("status ASC")
+    @OrderBy("active ASC")
     private List<Food> foods;
 
     @Column(name = "active")

@@ -32,28 +32,29 @@ public class MercadoPagoService {
     }
 
     private List<PreferenceItemRequest> createItemsWithNested(List<OrderItem> orderItems) {
-        List<PreferenceItemRequest> preferenceItems = new ArrayList<>();
-
-        for (OrderItem item : orderItems) {
-            String url = item.getImage() != null
-                    ? item.getImage().getUrl()
-                    : null;
-
-            preferenceItems.add(PreferenceItemRequest.builder()
-                    .title(item.getTitle())
-                    .description(item.getDescription())
-                    .quantity(item.getQuantity())
-                    .unitPrice(BigDecimal.valueOf(item.getUnitPrice()))
-                    .categoryId(item.getCategory())
-                    .currencyId("BRL")
-                    .pictureUrl(url)
-                    .build());
-
-            if (item.getOrderItems() != null && !item.getOrderItems().isEmpty()) {
-                preferenceItems.addAll(createItemsWithNested(item.getOrderItems()));
-            }
-        }
-
-        return preferenceItems;
+//        List<PreferenceItemRequest> preferenceItems = new ArrayList<>();
+//
+//        for (OrderItem item : orderItems) {
+//            String url = item.getImage() != null
+//                    ? item.getImage().getUrl()
+//                    : null;
+//
+//            preferenceItems.add(PreferenceItemRequest.builder()
+//                    .title(item.getTitle())
+//                    .description(item.getDescription())
+//                    .quantity(item.getQuantity())
+//                    .unitPrice(BigDecimal.valueOf(item.getUnitPrice()))
+//                    .categoryId(item.getCategory())
+//                    .currencyId("BRL")
+//                    .pictureUrl(url)
+//                    .build());
+//
+//            if (item.getOrderItems() != null && !item.getOrderItems().isEmpty()) {
+//                preferenceItems.addAll(createItemsWithNested(item.getOrderItems()));
+//            }
+//        }
+//
+//        return preferenceItems;
+        return null;
     }
 }

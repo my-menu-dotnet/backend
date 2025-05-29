@@ -2,11 +2,13 @@ package net.mymenu.order.order_item;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.mymenu.food.Food;
 import net.mymenu.order.enums.OrderCurrency;
 import net.mymenu.file_storage.FileStorage;
 import net.mymenu.order.order_discount.OrderDiscount;
@@ -23,16 +25,7 @@ import java.util.List;
 public class OrderItem extends BaseEntity {
 
     @Column(name = "title")
-    private String title;
-
-    @Column(name = "description")
-    private String description;
-
-    @ManyToOne
-    private FileStorage image;
-
-    @Column(name = "category")
-    private String category;
+    private String name;
 
     @Column(name = "quantity")
     private int quantity;
@@ -53,6 +46,10 @@ public class OrderItem extends BaseEntity {
 
     @OneToMany(cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @Nullable
+    private Food food;
 
     public double getTotalPrice() {
         double current = unitPrice * quantity;

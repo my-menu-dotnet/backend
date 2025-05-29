@@ -1,12 +1,18 @@
 package net.mymenu.order;
 
+import jakarta.transaction.Transactional;
+import net.mymenu.address.Address;
+import net.mymenu.address.AddressService;
+import net.mymenu.order.dto.OrderCreateRequest;
 import net.mymenu.order.dto.OrderFilter;
 import net.mymenu.order.dto.OrderItemRequest;
 import net.mymenu.discount.enums.DiscountType;
+import net.mymenu.order.dto.OrderRequest;
 import net.mymenu.order.enums.OrderStatus;
 import net.mymenu.exception.NotFoundException;
 import net.mymenu.discount.Discount;
 import net.mymenu.food.Food;
+import net.mymenu.order.order_item.OrderItemRepository;
 import net.mymenu.user.User;
 import net.mymenu.food.food_item.FoodItem;
 import net.mymenu.order.order_discount.OrderDiscount;
@@ -30,15 +36,16 @@ public class OrderService {
 
     @Autowired
     private FoodRepository foodRepository;
-
     @Autowired
     private FoodItemRepository foodItemRepository;
-
     @Autowired
     private JwtHelper jwtHelper;
-
     @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    private AddressService addressService;
+    @Autowired
+    private OrderItemRepository orderItemRepository;
 
     public Page<Order> findAll(Pageable pageable, OrderFilter orderFilter) {
         if (Optional.ofNullable(orderFilter).isEmpty()) {
@@ -57,67 +64,54 @@ public class OrderService {
         return orderRepository.findAll(pageable);
     }
 
-    public OrderItem createOrderItem(OrderItemRequest orderItemRequest) {
-        Food food = foodRepository.findById(orderItemRequest.getItemId())
-                .orElseThrow(() -> new NotFoundException("Food not found"));
+    @Transactional
+    public Order createOrderByCompanyPanel(OrderCreateRequest orderRequest) {
+        Address address = addressService.createAddressFromAddressRequest(orderRequest.getAddress());
+        List<OrderItem> orderItems = orderRequest.getOrderItems().stream()
+                .map(this::createOrderItem)
+                .toList();
+        Order order = createOrder(orderItems, null);
 
-        OrderDiscount orderDiscount = null;
+        order.setAddress(address);
+        order.setUserName(orderRequest.getUserName());
 
-        if (orderItemRequest.getDiscountId() != null) {
-            Discount discount = food.getActiveDiscount();
+        orderItemRepository.saveAllAndFlush(orderItems);
+        orderRepository.save(order);
 
-            if (!discount.getId().equals(orderItemRequest.getDiscountId())) {
-                throw new NotFoundException("Discount not found");
-            }
-
-            orderDiscount = createOrderDiscount(discount);
-        }
-
-        OrderItem orderItemFood = OrderItem
-                .builder()
-                .title(food.getName())
-                .observation(orderItemRequest.getObservation())
-                .description(food.getDescription())
-                .unitPrice(food.getPrice())
-                .quantity(orderItemRequest.getQuantity())
-                .image(food.getImage())
-                .category(food.getCategory().getName())
-                .build();
-
-        List<OrderItem> orderItemList = new ArrayList<>(List.of());
-
-        Optional.ofNullable(orderItemRequest.getItems())
-                .orElse(List.of())
-                .forEach(item -> {
-                    FoodItem foodItem = foodItemRepository.findById(item.getItemId())
-                            .orElseThrow(() -> new NotFoundException("Food not found"));
-
-                    OrderItem orderItemExtraFood = OrderItem
-                            .builder()
-                            .title(foodItem.getTitle())
-                            .description(foodItem.getDescription())
-                            .unitPrice(foodItem.getPriceIncrease())
-                            .quantity(item.getQuantity())
-                            .image(foodItem.getImage())
-                            .category(foodItem.getCategory().getTitle())
-                            .build();
-
-                    orderItemList.add(orderItemExtraFood);
-                });
-
-        orderItemFood.setOrderItems(orderItemList);
-        orderItemFood.setDiscount(orderDiscount);
-
-        return orderItemFood;
+        return order;
     }
 
-    private OrderDiscount createOrderDiscount(Discount discount) {
-        return OrderDiscount.builder()
-                .discount(discount.getDiscount())
-                .type(discount.getType())
-                .startAt(discount.getStartAt())
-                .endAt(discount.getEndAt())
+    public OrderItem createOrderItem(OrderItemRequest orderItemRequest) {
+        OrderItem orderItemFood = OrderItem
+                .builder()
+                .name(orderItemRequest.getName())
+                .quantity(orderItemRequest.getQuantity())
+                .observation(orderItemRequest.getObservation())
                 .build();
+
+        if (Optional.ofNullable(orderItemRequest.getDiscount()).isPresent()) {
+            OrderDiscount discount = OrderDiscount
+                    .builder()
+                    .discount(orderItemRequest.getDiscount())
+                    .type(orderItemRequest.getDiscountType())
+                    .build();
+            orderItemFood.setDiscount(discount);
+        }
+
+        if (Optional.ofNullable(orderItemRequest.getFoodId()).isPresent()) {
+            Food food = foodRepository.findById(orderItemRequest.getFoodId())
+                    .orElseThrow(() -> new NotFoundException("Food not found"));
+            orderItemFood.setFood(food);
+        }
+
+        if (orderItemRequest.getItems() != null && !orderItemRequest.getItems().isEmpty()) {
+            List<OrderItem> childItems = orderItemRequest.getItems().stream()
+                    .map(this::createOrderItem)
+                    .toList();
+            orderItemFood.setOrderItems(childItems);
+        }
+
+        return orderItemFood;
     }
 
     public Order createOrder(List<OrderItem> orderItems) {

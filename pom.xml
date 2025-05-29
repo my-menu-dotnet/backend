@@ -28,6 +28,7 @@
     </scm>
     <properties>
         <java.version>22</java.version>
+        <maven.compiler.release>22</maven.compiler.release>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <!-- Use Brazil/Sao_Paulo timezone -->

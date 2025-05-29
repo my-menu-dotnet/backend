@@ -24,9 +24,6 @@ import java.util.List;
 @Builder
 public class Order extends BaseEntity {
 
-    @Column(name = "table_number")
-    private int tableNumber;
-
     @Column(name = "total_price")
     private double totalPrice;
 
@@ -39,6 +36,9 @@ public class Order extends BaseEntity {
 
     @Column(name = "company_observation")
     private String companyObservation;
+
+    @Column(name = "delivery_fee")
+    private int deliveryFee;
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)

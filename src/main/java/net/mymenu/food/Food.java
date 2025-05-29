@@ -3,7 +3,6 @@ package net.mymenu.food;
 import com.fasterxml.jackson.annotation.*;
 import net.mymenu.category.Category;
 import net.mymenu.discount.enums.DiscountStatus;
-import net.mymenu.food.enums.FoodStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import net.mymenu.discount.Discount;
@@ -31,13 +30,12 @@ public class Food extends BaseEntity {
     @Column(name = "price")
     private double price;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "image_id", referencedColumnName = "id")
     private FileStorage image;
 
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
-    private FoodStatus status;
+    @Column(name = "active")
+    private boolean active;
 
     @Column(name = "lactose_free")
     private boolean lactoseFree;
@@ -59,7 +57,7 @@ public class Food extends BaseEntity {
     @JsonIgnoreProperties("foods")
     private Category category;
 
-    @OneToMany(mappedBy = "food")
+    @OneToMany(mappedBy = "food", cascade =  CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     @JsonProperty("item_categories")
     @OrderBy("order")

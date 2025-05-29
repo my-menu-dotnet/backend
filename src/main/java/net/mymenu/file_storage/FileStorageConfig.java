@@ -10,8 +10,12 @@ public class FileStorageConfig {
     @Value("${file.url}")
     private String fileUrl;
 
+    @Value("${file.upload.dir}")
+    private String uploadDir;
+
     @PostConstruct
     public void init() {
         FileStorage.setFileUrl(fileUrl);
+        FileStorageService.setUploadDir(uploadDir);
     }
 }

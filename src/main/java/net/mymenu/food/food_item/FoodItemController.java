@@ -8,6 +8,8 @@ import net.mymenu.food.food_item_category.FoodItemCategory;
 import net.mymenu.file_storage.FileStorageRepository;
 import net.mymenu.food.food_item_category.FoodItemCategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,40 +17,33 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/food/category/{categoryId}/item")
+@RequestMapping("/food-item")
 public class FoodItemController {
 
     @Autowired
     private FoodItemRepository foodItemRepository;
-
     @Autowired
     private FoodItemCategoryRepository foodItemCategoryRepository;
-
     @Autowired
     private FileStorageRepository fileStorageRepository;
+    @Autowired
+    private FoodItemService foodItemService;
+
+    @GetMapping("/food/{foodId}")
+    public ResponseEntity<Page<FoodItem>> findAll(@PathVariable UUID foodId, Pageable pageable) {
+        Page<FoodItem> foodItems = foodItemService.findAllByFoodIdPageable(foodId, pageable);
+        return ResponseEntity.ok(foodItems);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<FoodItem> findById(@PathVariable UUID id) {
+        FoodItem foodItem = foodItemService.findById(id);
+        return ResponseEntity.ok(foodItem);
+    }
 
     @PostMapping
-    public ResponseEntity<FoodItem> create(@PathVariable UUID categoryId, @RequestBody FoodItemRequest foodItemRequest) {
-        FoodItemCategory foodItemCategory = foodItemCategoryRepository.findById(categoryId)
-                .orElseThrow(() -> new NotFoundException("Category not found"));
-
-        FileStorage fileStorage = null;
-        if (foodItemRequest.getImageId() != null) {
-            fileStorage = fileStorageRepository.findById(foodItemRequest.getImageId())
-                    .orElseThrow(() -> new NotFoundException("Image not found"));
-        }
-
-        FoodItem foodItem = FoodItem
-                .builder()
-                .category(foodItemCategory)
-                .title(foodItemRequest.getTitle())
-                .description(foodItemRequest.getDescription())
-                .priceIncrease(foodItemRequest.getPriceIncrease())
-                .image(fileStorage)
-                .build();
-
-        foodItemRepository.saveAndFlush(foodItem);
-
+    public ResponseEntity<FoodItem> create(@RequestBody FoodItemRequest foodItemRequest) {
+        FoodItem foodItem = foodItemService.create(foodItemRequest);
         return ResponseEntity.ok(foodItem);
     }
 
@@ -68,7 +63,7 @@ public class FoodItemController {
         }
 
         foodItem.setDescription(foodItemRequest.getDescription());
-        foodItem.setTitle(foodItemRequest.getTitle());
+        foodItem.setName(foodItemRequest.getName());
         foodItem.setCategory(foodItemCategory);
         foodItem.setPriceIncrease(foodItemRequest.getPriceIncrease());
         foodItem.setImage(fileStorage);

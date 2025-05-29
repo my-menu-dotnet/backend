@@ -1,6 +1,13 @@
 package net.mymenu.food.dto;
 
-import net.mymenu.food.enums.FoodStatus;
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import net.mymenu.category.CategoryRepository;
+import net.mymenu.constraints.EntityExists;
+import net.mymenu.file_storage.FileStorageRepository;
+import net.mymenu.food.FoodRepository;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -9,38 +16,41 @@ import lombok.Setter;
 
 import java.util.UUID;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 public class FoodRequest {
 
-    String name;
-
-    @Valid
-    String description;
-
-    @Valid
-    double price;
-
-    UUID imageId;
-
-    @Valid
+    @NotNull
     @NotBlank
-    FoodStatus status;
+    private String name;
 
-    @Valid
-    @NotBlank
+    private String description;
+
+    @NotNull
+    private Double price;
+
+    @EntityExists(repository = FileStorageRepository.class)
+    private UUID imageId;
+
+    @NotNull
+    private boolean active;
+
+    @NotNull
     @JsonProperty("category_id")
-    UUID categoryId;
+    @EntityExists(repository = CategoryRepository.class)
+    private UUID categoryId;
 
     @JsonProperty("lactose_free")
-    boolean lactoseFree;
+    private boolean lactoseFree;
 
     @JsonProperty("gluten_free")
-    boolean glutenFree;
+    private boolean glutenFree;
 
-    boolean vegan;
+    private boolean vegan;
 
-    boolean vegetarian;
+    private boolean vegetarian;
 
-    boolean halal;
+    private boolean halal;
 }

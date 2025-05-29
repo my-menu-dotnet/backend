@@ -14,9 +14,9 @@ public class OrderCreateRequest {
 
     private String userName;
 
-    private String companyObservation;
-
     private List<OrderItemRequest> orderItems;
 
     private AddressRequest address;
+
+    private int deliveryFee;
 }

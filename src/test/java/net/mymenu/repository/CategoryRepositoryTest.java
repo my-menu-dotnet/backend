@@ -2,7 +2,6 @@ package net.mymenu.repository;
 
 import net.mymenu.category.CategoryRepository;
 import net.mymenu.config.TenantTest;
-import net.mymenu.category.enums.CategoryStatus;
 import net.mymenu.category.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 

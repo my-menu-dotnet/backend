@@ -12,4 +12,7 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
     Optional<List<Category>> findAllByIdList(List<UUID> categoryId);
 
     List<Category> findAllByActiveTrueOrderByOrder();
+
+    @Query("SELECT c FROM Category c ORDER BY c.order DESC LIMIT 1")
+    Category findLastCategoryOrder();
 }

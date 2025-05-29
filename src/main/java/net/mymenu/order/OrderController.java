@@ -1,6 +1,7 @@
 package net.mymenu.order;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import net.mymenu.order.enums.OrderStatus;
 import net.mymenu.exception.DifferentTotalsOrder;
 import net.mymenu.address.Address;
@@ -58,26 +59,26 @@ public class OrderController {
         return ResponseEntity.ok(new OrderTotalDTO(total));
     }
 
-    @PostMapping
-    @Transactional
-    public ResponseEntity<Order> create(@RequestBody List<OrderItemRequest> orderItemRequests, @RequestParam Double total) {
-        List<OrderItem> orderItems = orderItemRequests.stream()
-                .map(orderService::createOrderItem)
-                .toList();
-
-        Order order = orderService.createOrder(orderItems);
-
-        if (total != order.getTotalPrice()) {
-            throw new DifferentTotalsOrder();
-        }
-
-        orderItemRepository.saveAllAndFlush(orderItems);
-        orderRepository.save(order);
-
-        orderWebSocketService.sendNotificationToTenant(TenantContext.getCurrentTenant(), order);
-
-        return ResponseEntity.ok(order);
-    }
+//    @PostMapping
+//    @Transactional
+//    public ResponseEntity<Order> create(@RequestBody List<OrderItemRequest> orderItemRequests, @RequestParam Double total) {
+//        List<OrderItem> orderItems = orderItemRequests.stream()
+//                .map(orderService::createOrderItem)
+//                .toList();
+//
+//        Order order = orderService.createOrder(orderItems);
+//
+//        if (total != order.getTotalPrice()) {
+//            throw new DifferentTotalsOrder();
+//        }
+//
+//        orderItemRepository.saveAllAndFlush(orderItems);
+//        orderRepository.save(order);
+//
+//        orderWebSocketService.sendNotificationToTenant(TenantContext.getCurrentTenant(), order);
+//
+//        return ResponseEntity.ok(order);
+//    }
 
     @GetMapping
     public ResponseEntity<Page<Order>> findAllTable(OrderFilter filter, Pageable pageable) {
@@ -122,26 +123,11 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
-    @PostMapping("/anonymously")
+    @PostMapping
     @Transactional
-    public ResponseEntity<Order> createManual(@RequestBody OrderCreateRequest orderRequest) {
-        Address address = addressService.createAddressFromAddressRequest(orderRequest.getAddress());
-
-        List<OrderItem> orderItems = orderRequest.getOrderItems().stream()
-                .map(orderService::createOrderItem)
-                .toList();
-
-        Order order = orderService.createOrder(orderItems, null);
-
-        order.setAddress(address);
-        order.setUserName(orderRequest.getUserName());
-        order.setCompanyObservation(orderRequest.getCompanyObservation());
-
-        orderItemRepository.saveAllAndFlush(orderItems);
-        orderRepository.save(order);
-
+    public ResponseEntity<Order> createFromCompanyPanel(@RequestBody @Valid OrderCreateRequest orderRequest) {
+        Order order = orderService.createOrderByCompanyPanel(orderRequest);
         orderWebSocketService.sendNotificationToTenant(TenantContext.getCurrentTenant(), order);
-
         return ResponseEntity.ok(order);
     }
 

@@ -1,6 +1,7 @@
 package net.mymenu.food.food_item_category;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,7 +21,7 @@ import java.util.List;
 public class FoodItemCategory extends BaseEntity {
 
     @Column(name = "title")
-    private String title;
+    private String name;
 
     @Column(name = "description")
     private String description;
@@ -34,8 +35,8 @@ public class FoodItemCategory extends BaseEntity {
     @Column(name = "max_items")
     private double maxItems;
 
-    @OneToMany(mappedBy = "category")
-    @JsonManagedReference
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("category")
     @OrderBy("order")
     private List<FoodItem> foodItems;
 

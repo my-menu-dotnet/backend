@@ -1,7 +1,12 @@
-package net.mymenu.food.food_item.dto;
+package net.mymenu.food.food_item_category.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import net.mymenu.constraints.EntityExists;
+import net.mymenu.food.FoodRepository;
+
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -10,7 +15,7 @@ import lombok.*;
 @Builder
 public class FoodItemCategoryRequest {
 
-    private String title;
+    private String name;
 
     private String description;
 
@@ -21,4 +26,8 @@ public class FoodItemCategoryRequest {
 
     @JsonProperty("max_items")
     private double maxItems;
+
+    @EntityExists(repository = FoodRepository.class)
+    @NotNull
+    private UUID foodId;
 }

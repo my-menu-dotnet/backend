@@ -32,6 +32,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <!-- Use Brazil/Sao_Paulo timezone -->
         <spring-boot.run.jvmArguments>-Duser.timezone=UTC-3</spring-boot.run.jvmArguments>
+        <cloudflare-aws-sdk-version>2.31.50</cloudflare-aws-sdk-version>
     </properties>
     <dependencies>
         <dependency>
@@ -45,6 +46,17 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>${cloudflare-aws-sdk-version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>apache-client</artifactId>
+            <version>${cloudflare-aws-sdk-version}</version>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>

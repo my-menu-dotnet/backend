@@ -38,6 +38,6 @@ public class FileStorage {
     private String url;
 
     public String getUrl() {
-        return fileUrl + id;
+        return fileUrl + fileName;
     }
 }

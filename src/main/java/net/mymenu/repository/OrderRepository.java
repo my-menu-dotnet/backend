@@ -22,7 +22,7 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
 
     @Query("SELECT o FROM Order o WHERE o.status NOT IN ('READY', 'DELIVERED') OR " +
-            "(o.status IN ('READY', 'DELIVERED') AND FUNCTION('DATE', o.updatedAt) = FUNCTION('CURRENT_DATE'))")
+            "(o.status IN ('READY', 'DELIVERED') AND FUNCTION('DATE', o.createdAt) = FUNCTION('CURRENT_DATE'))")
     List<Order> findAllExcludeOldOrders();
 
     @Query("SELECT o FROM Order o WHERE o.user = :user " +

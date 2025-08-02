@@ -1,5 +1,7 @@
 package net.mymenu.repository;
 
+import net.mymenu.dto.analytics.DailyOrderStatsResponse;
+import net.mymenu.dto.analytics.ItemStatsResponse;
 import net.mymenu.enums.order.OrderStatus;
 import net.mymenu.models.Order;
 import net.mymenu.models.User;
@@ -9,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,11 +21,11 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     @Query("SELECT o FROM Order o ORDER BY o.orderNumber DESC LIMIT 1")
     Optional<Order> findLastOrder();
 
-    List<Order> findAllByStatus(OrderStatus status);
+    @Query("SELECT o FROM Order o WHERE o.status = :status AND FUNCTION('DATE', o.createdAt) = FUNCTION('CURRENT_DATE')")
+    List<Order> findAllByStatusToday(@Param("status") OrderStatus status);
 
-
-    @Query("SELECT o FROM Order o WHERE o.status NOT IN ('READY', 'DELIVERED') OR " +
-            "(o.status IN ('READY', 'DELIVERED') AND FUNCTION('DATE', o.createdAt) = FUNCTION('CURRENT_DATE'))")
+    @Query("SELECT o FROM Order o WHERE o.status NOT IN ('DELIVERED') OR " +
+            "(o.status IN ('DELIVERED') AND FUNCTION('DATE', o.createdAt) = FUNCTION('CURRENT_DATE'))")
     List<Order> findAllExcludeOldOrders();
 
     @Query("SELECT o FROM Order o WHERE o.user = :user " +
@@ -38,4 +41,23 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     @Query("SELECT SUM(o.totalPrice) FROM Order o WHERE o.user = :user")
     Double findTotalSumByUser(@Param("user") User user);
+
+    // Query alternativa mais robusta para estatísticas de itens
+    @Query("SELECT new net.mymenu.dto.analytics.ItemStatsResponse(oi.title, SUM(oi.quantity)) " +
+           "FROM Order o INNER JOIN o.orderItems oi " +
+           "WHERE o.createdAt >= :startDate AND o.createdAt <= :endDate " +
+           "AND oi.title IS NOT NULL " +
+           "GROUP BY oi.title " +
+           "ORDER BY SUM(oi.quantity) DESC")
+    List<ItemStatsResponse> getItemStatsByDateRange(@Param("startDate") LocalDateTime startDate,
+                                                   @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT new net.mymenu.dto.analytics.DailyOrderStatsResponse(" +
+           "DATE(o.createdAt), COUNT(o)) " +
+           "FROM Order o " +
+           "WHERE o.createdAt >= :startDate AND o.createdAt <= :endDate " +
+           "GROUP BY DATE(o.createdAt) " +
+           "ORDER BY DATE(o.createdAt)")
+    List<DailyOrderStatsResponse> getDailyOrderStatsByDateRange(@Param("startDate") LocalDateTime startDate,
+                                                               @Param("endDate") LocalDateTime endDate);
 }

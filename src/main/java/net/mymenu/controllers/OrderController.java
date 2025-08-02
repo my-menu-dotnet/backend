@@ -107,19 +107,19 @@ public class OrderController {
         order.setOrder(newPosition);
 
         if (oldStatus != newStatus) {
-            List<Order> oldStatusOrders = orderRepository.findAllByStatus(oldStatus).stream()
+            List<Order> oldStatusOrders = orderRepository.findAllByStatusToday(oldStatus).stream()
                     .filter(o -> !o.getId().equals(orderId))
                     .toList();
             orderService.reorderList(oldStatusOrders);
 
-            List<Order> newStatusOrders = orderRepository.findAllByStatus(newStatus).stream()
+            List<Order> newStatusOrders = orderRepository.findAllByStatusToday(newStatus).stream()
                     .filter(o -> !o.getId().equals(orderId))
                     .sorted(Comparator.comparingInt(Order::getOrder))
                     .toList();
 
             orderService.adjustPositionsForInsert(newStatusOrders, newPosition);
         } else {
-            List<Order> sameStatusOrders = orderRepository.findAllByStatus(newStatus).stream()
+            List<Order> sameStatusOrders = orderRepository.findAllByStatusToday(newStatus).stream()
                     .filter(o -> !o.getId().equals(orderId))
                     .sorted(Comparator.comparingInt(Order::getOrder))
                     .toList();

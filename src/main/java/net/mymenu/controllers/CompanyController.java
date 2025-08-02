@@ -1,22 +1,18 @@
 package net.mymenu.controllers;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import net.mymenu.dto.CompanyRequest;
+import net.mymenu.dto.CompanyResponse;
 import net.mymenu.models.*;
 import net.mymenu.repository.CompanyRepository;
 import net.mymenu.security.JwtHelper;
 import jakarta.validation.Valid;
 import net.mymenu.service.CompanyService;
-import net.mymenu.service.QRCodeService;
-import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -60,7 +56,7 @@ public class CompanyController {
 
     @PutMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Company> updateCompany(@Valid @RequestBody CompanyRequest company) {
+    public ResponseEntity<CompanyResponse> updateCompany(@Valid @RequestBody CompanyRequest company) {
         User user = jwtHelper.extractUser();
         Company companyToUpdate = user.getCompany();
 
@@ -87,9 +83,25 @@ public class CompanyController {
         companyToUpdate.setImage(image);
         companyToUpdate.setAddress(address);
 
+        // Atualizar horários de funcionamento se fornecidos
+        if (company.getBusinessHours() != null && !company.getBusinessHours().isEmpty()) {
+            companyService.updateBusinessHours(companyToUpdate, company.getBusinessHours());
+        }
+
         companyRepository.saveAndFlush(companyToUpdate);
 
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        CompanyResponse response = companyService.convertToResponse(companyToUpdate);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CompanyResponse> getCompany() {
+        User user = jwtHelper.extractUser();
+        Company company = user.getCompany();
+
+        CompanyResponse response = companyService.convertToResponse(company);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/qr-code")

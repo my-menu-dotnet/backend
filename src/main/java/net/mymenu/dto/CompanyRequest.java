@@ -44,4 +44,8 @@ public class CompanyRequest {
 
     @Valid
     private AddressRequest address;
+
+    @Valid
+    @JsonProperty("business_hours")
+    private List<BusinessHoursRequest> businessHours;
 }

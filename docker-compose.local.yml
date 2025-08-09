@@ -1,0 +1,48 @@
+services:
+  spring-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CACHE_TYPE=simple
+      - SPRING_MVC_LOG_REQUEST_DETAILS=true
+      - JPA_SHOW_SQL=false
+      - JPA_HIBERNATE_DDL_AUTO=update
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/digimenu
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+    networks:
+      - spring-network
+    depends_on:
+      - postgres
+      - loki
+      - prometheus
+      - grafana
+    env_file:
+      - .env
+    restart: always
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: digimenu
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - spring-network
+    restart: always
+
+volumes:
+  postgres_data:
+
+networks:
+  spring-network:
+    driver: bridge
+

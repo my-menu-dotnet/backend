@@ -1,79 +1,18 @@
 services:
-  loki:
-    image: grafana/loki:2.9.0
-    container_name: loki
-    ports:
-      - "9091:9091"
-    command: -config.file=/etc/loki/config/loki-local-config.yaml
-    volumes:
-      - ./monitoring/loki/loki-config.yaml:/etc/loki/config/loki-local-config.yaml
-    networks:
-      - spring-network
-
-  prometheus:
-    image: prom/prometheus:latest
-    ports:
-      - "9090:9090"
-    networks:
-      - spring-network
-    volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    restart: always
-
-  grafana:
-    image: grafana/grafana:9.5.2
-    networks:
-      - spring-network
-    ports:
-      - "9092:3000"
-    restart: always
-    volumes:
-      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
-
   spring-app:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_CACHE_TYPE=simple
-      - SPRING_MVC_LOG_REQUEST_DETAILS=true
-      - JPA_SHOW_SQL=false
-      - JPA_HIBERNATE_DDL_AUTO=update
-      - DATABASE_URL=jdbc:postgresql://postgres:5432/digimenu
-      - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres
+      - "8080:8080"
     networks:
       - spring-network
-    depends_on:
-      - postgres
-      - loki
-      - prometheus
-      - grafana
     env_file:
       - .env
     restart: always
 
-  postgres:
-    image: postgres:16
-    environment:
-      POSTGRES_DB: digimenu
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5434:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - spring-network
-    restart: always
-
-volumes:
-  postgres_data:
-
 networks:
   spring-network:
-    driver: bridge
+    external: true
+    name: spring-network
 

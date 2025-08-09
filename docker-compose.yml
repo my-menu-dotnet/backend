@@ -1,4 +1,35 @@
 services:
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    ports:
+      - "9091:9091"
+    command: -config.file=/etc/loki/config/loki-local-config.yaml
+    volumes:
+      - ./monitoring/loki/loki-config.yaml:/etc/loki/config/loki-local-config.yaml
+    networks:
+      - spring-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    networks:
+      - spring-network
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: always
+
+  grafana:
+    image: grafana/grafana:9.5.2
+    networks:
+      - spring-network
+    ports:
+      - "9092:3000"
+    restart: always
+    volumes:
+      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+
   spring-app:
     build:
       context: .
@@ -18,11 +49,12 @@ services:
       - spring-network
     depends_on:
       - postgres
+      - loki
+      - prometheus
+      - grafana
     env_file:
       - .env
     restart: always
-    volumes:
-      - ./images:/app/src/main/resources/static/images
 
   postgres:
     image: postgres:16

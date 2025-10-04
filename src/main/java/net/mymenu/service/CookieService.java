@@ -19,8 +19,9 @@ public class CookieService {
         return createCookie("accessToken", jwt, jwtHelper.REFRESH_EXPIRY_IN_SECONDS, "/");
     }
 
+    // This need to be ajusted according to the path of your refresh token endpoint
     public ResponseCookie createRefreshTokenCookie(String refreshToken) {
-        return createCookie("refreshToken", refreshToken, jwtHelper.REFRESH_EXPIRY_IN_SECONDS, "/api/v1/oauth/refresh-token");
+        return createCookie("refreshToken", refreshToken, jwtHelper.REFRESH_EXPIRY_IN_SECONDS, "/");
     }
 
     public ResponseCookie createIsAuthenticatedCookie(Boolean isAuthenticated) {

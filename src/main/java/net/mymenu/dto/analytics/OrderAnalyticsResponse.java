@@ -15,4 +15,5 @@ public class OrderAnalyticsResponse {
     private long totalOrders;
     private List<ItemStatsResponse> itemStats;
     private List<DailyOrderStatsResponse> dailyStats;
+    private List<MonthlyAverageTicketResponse> monthlyAverageTicket;
 }

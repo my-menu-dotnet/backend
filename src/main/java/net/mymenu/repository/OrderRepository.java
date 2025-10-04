@@ -2,9 +2,11 @@ package net.mymenu.repository;
 
 import net.mymenu.dto.analytics.DailyOrderStatsResponse;
 import net.mymenu.dto.analytics.ItemStatsResponse;
+import net.mymenu.dto.analytics.MonthlyAverageTicketResponse;
 import net.mymenu.enums.order.OrderStatus;
 import net.mymenu.models.Order;
 import net.mymenu.models.User;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -42,7 +44,7 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     @Query("SELECT SUM(o.totalPrice) FROM Order o WHERE o.user = :user")
     Double findTotalSumByUser(@Param("user") User user);
 
-    // Query alternativa mais robusta para estatísticas de itens
+    @Cacheable(value = "itemStats", key = "#startDate.toString() + '_' + #endDate.toString()")
     @Query("SELECT new net.mymenu.dto.analytics.ItemStatsResponse(oi.title, SUM(oi.quantity)) " +
            "FROM Order o INNER JOIN o.orderItems oi " +
            "WHERE o.createdAt >= :startDate AND o.createdAt <= :endDate " +
@@ -52,6 +54,7 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     List<ItemStatsResponse> getItemStatsByDateRange(@Param("startDate") LocalDateTime startDate,
                                                    @Param("endDate") LocalDateTime endDate);
 
+    @Cacheable(value = "dailyStats", key = "#startDate.toString() + '_' + #endDate.toString()")
     @Query("SELECT new net.mymenu.dto.analytics.DailyOrderStatsResponse(" +
            "DATE(o.createdAt), COUNT(o)) " +
            "FROM Order o " +
@@ -60,4 +63,15 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
            "ORDER BY DATE(o.createdAt)")
     List<DailyOrderStatsResponse> getDailyOrderStatsByDateRange(@Param("startDate") LocalDateTime startDate,
                                                                @Param("endDate") LocalDateTime endDate);
+
+    @Cacheable(value = "monthlyTicket", key = "#startDate.toString() + '_' + #endDate.toString()")
+    @Query("SELECT new net.mymenu.dto.analytics.MonthlyAverageTicketResponse(" +
+           "YEAR(o.createdAt), MONTH(o.createdAt), AVG(o.totalPrice)) " +
+           "FROM Order o " +
+           "WHERE o.createdAt >= :startDate AND o.createdAt <= :endDate " +
+           "AND o.totalPrice IS NOT NULL " +
+           "GROUP BY YEAR(o.createdAt), MONTH(o.createdAt) " +
+           "ORDER BY YEAR(o.createdAt) DESC, MONTH(o.createdAt) DESC")
+    List<MonthlyAverageTicketResponse> getMonthlyAverageTicketLast12Months(@Param("startDate") LocalDateTime startDate,
+                                                                          @Param("endDate") LocalDateTime endDate);
 }

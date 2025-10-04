@@ -56,7 +56,7 @@ public class TenantInterceptor implements HandlerInterceptor {
             tenantId = company.map(Company::getId)
                     .orElseThrow(() -> new NotFoundException("Company not found"));
         } else {
-            if (!jwtHelper.isAuthenticated() || FULL_ACCESS_URLS.contains(uri)) {
+            if (!jwtHelper.isAuthenticated() && FULL_ACCESS_URLS.contains(uri)) {
                 return true;
             }
 

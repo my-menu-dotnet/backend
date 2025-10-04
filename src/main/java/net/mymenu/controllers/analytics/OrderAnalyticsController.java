@@ -2,6 +2,7 @@ package net.mymenu.controllers.analytics;
 
 import net.mymenu.dto.analytics.DailyOrderStatsResponse;
 import net.mymenu.dto.analytics.ItemStatsResponse;
+import net.mymenu.dto.analytics.MonthlyAverageTicketResponse;
 import net.mymenu.dto.analytics.OrderAnalyticsResponse;
 import net.mymenu.dto.analytics.OrderStatsResponse;
 import net.mymenu.service.OrderAnalyticsService;
@@ -34,6 +35,12 @@ public class OrderAnalyticsController {
     @GetMapping("/daily-stats")
     public ResponseEntity<List<DailyOrderStatsResponse>> getDailyStats() {
         List<DailyOrderStatsResponse> response = orderAnalyticsService.getDailyOrdersLastMonth();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/monthly-average-ticket")
+    public ResponseEntity<List<MonthlyAverageTicketResponse>> getMonthlyAverageTicket() {
+        List<MonthlyAverageTicketResponse> response = orderAnalyticsService.getMonthlyAverageTicketLast12Months();
         return ResponseEntity.ok(response);
     }
 

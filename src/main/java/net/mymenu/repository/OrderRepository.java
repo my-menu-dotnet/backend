@@ -44,7 +44,6 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     @Query("SELECT SUM(o.totalPrice) FROM Order o WHERE o.user = :user")
     Double findTotalSumByUser(@Param("user") User user);
 
-    @Cacheable(value = "itemStats", key = "#startDate.toString() + '_' + #endDate.toString()")
     @Query("SELECT new net.mymenu.dto.analytics.ItemStatsResponse(oi.title, SUM(oi.quantity)) " +
            "FROM Order o INNER JOIN o.orderItems oi " +
            "WHERE o.createdAt >= :startDate AND o.createdAt <= :endDate " +
@@ -54,7 +53,6 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     List<ItemStatsResponse> getItemStatsByDateRange(@Param("startDate") LocalDateTime startDate,
                                                    @Param("endDate") LocalDateTime endDate);
 
-    @Cacheable(value = "dailyStats", key = "#startDate.toString() + '_' + #endDate.toString()")
     @Query("SELECT new net.mymenu.dto.analytics.DailyOrderStatsResponse(" +
            "DATE(o.createdAt), COUNT(o)) " +
            "FROM Order o " +
@@ -64,7 +62,6 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     List<DailyOrderStatsResponse> getDailyOrderStatsByDateRange(@Param("startDate") LocalDateTime startDate,
                                                                @Param("endDate") LocalDateTime endDate);
 
-    @Cacheable(value = "monthlyTicket", key = "#startDate.toString() + '_' + #endDate.toString()")
     @Query("SELECT new net.mymenu.dto.analytics.MonthlyAverageTicketResponse(" +
            "YEAR(o.createdAt), MONTH(o.createdAt), AVG(o.totalPrice)) " +
            "FROM Order o " +

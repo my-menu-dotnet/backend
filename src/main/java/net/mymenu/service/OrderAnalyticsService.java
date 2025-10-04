@@ -47,7 +47,6 @@ public class OrderAnalyticsService {
         return orderRepository.getMonthlyAverageTicketLast12Months(startDate, endDate);
     }
 
-    @Cacheable(value = "analytics", key = "#itemStatsPeriodMonths != null ? #itemStatsPeriodMonths : 1")
     public OrderAnalyticsResponse getOrderAnalytics(Integer itemStatsPeriodMonths) {
         int periodMonths = itemStatsPeriodMonths != null ? itemStatsPeriodMonths : 1;
 

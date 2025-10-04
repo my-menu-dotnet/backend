@@ -24,6 +24,7 @@ public class CookieService {
     }
 
     public ResponseCookie createIsAuthenticatedCookie(Boolean isAuthenticated) {
+        System.out.println("Creating is_authenticated cookie with value: " + cookieDomain);
         return ResponseCookie.from("is_authenticated", isAuthenticated.toString())
                 .httpOnly(false)
                 .secure(true)
@@ -34,6 +35,7 @@ public class CookieService {
     }
 
     public ResponseCookie createCookie(String name, String value, int maxAge, String path) {
+        System.out.println("Creating createCookie cookie with value: " + cookieDomain);
         return ResponseCookie.from(name, value)
                 .httpOnly(true)
                 .secure(true)

@@ -2,6 +2,7 @@ package net.mymenu.service;
 
 import net.mymenu.security.JwtHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +11,9 @@ public class CookieService {
 
     @Autowired
     private JwtHelper jwtHelper;
+
+    @Value("${cookie.domain}")
+    private String cookieDomain;
 
     public ResponseCookie createAccessTokenCookie(String jwt) {
         return createCookie("accessToken", jwt, jwtHelper.REFRESH_EXPIRY_IN_SECONDS, "/");
@@ -21,7 +25,9 @@ public class CookieService {
 
     public ResponseCookie createIsAuthenticatedCookie(Boolean isAuthenticated) {
         return ResponseCookie.from("is_authenticated", isAuthenticated.toString())
+                .httpOnly(false)
                 .secure(true)
+                .domain(cookieDomain)
                 .sameSite("None")
                 .path("/")
                 .build();
@@ -31,6 +37,7 @@ public class CookieService {
         return ResponseCookie.from(name, value)
                 .httpOnly(true)
                 .secure(true)
+                .domain(cookieDomain)
                 .path(path)
                 .sameSite("None")
                 .maxAge(maxAge)

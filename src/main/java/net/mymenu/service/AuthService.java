@@ -10,7 +10,6 @@ import net.mymenu.models.auth.RefreshToken;
 import net.mymenu.repository.UserRepository;
 import net.mymenu.repository.auth.RefreshTokenRepository;
 import net.mymenu.security.JwtHelper;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -86,7 +85,6 @@ public class AuthService {
         String firstName = (String) payload.get("given_name");
         String lastName = (String) payload.get("family_name");
         String email = payload.getEmail();
-//            String pictureUrl = (String) payload.get("picture");
 
         User user = userRepository.findByEmail(email).orElse(null);
 

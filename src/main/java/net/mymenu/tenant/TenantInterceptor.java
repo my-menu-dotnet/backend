@@ -47,6 +47,11 @@ public class TenantInterceptor implements HandlerInterceptor {
 
         UUID tenantId;
 
+        // Primeiro, verificar se é uma rota OAuth que deve ser ignorada
+        if (uri.startsWith("/v1/oauth/")) {
+            return true; // Pular completamente o processamento de tenant para rotas OAuth
+        }
+
         if (uri.startsWith("/menu") || (uri.startsWith("/order") && method.equals("POST")) || uri.equals("/order/user") || uri.equals("/order/user/total")) {
             String companyUrl = request.getHeader("X-Company-ID");
 
@@ -55,8 +60,12 @@ public class TenantInterceptor implements HandlerInterceptor {
             tenantId = company.map(Company::getId)
                     .orElseThrow(() -> new NotFoundException("Company not found"));
         } else {
-            if (!jwtHelper.isAuthenticated() && FULL_ACCESS_URLS.contains(uri)) {
-                return true;
+            // Verificar outras rotas que não precisam de autenticação
+            if (FULL_ACCESS_URLS.contains(uri)) {
+                // Para essas rotas, só tentar extrair user se estiver autenticado
+                if (!jwtHelper.isAuthenticated()) {
+                    return true; // Permitir acesso sem tenant
+                }
             }
 
             User user = jwtHelper.extractUser();
@@ -65,8 +74,6 @@ public class TenantInterceptor implements HandlerInterceptor {
                     .orElseThrow(() -> new AccountHasNoCompany("Account has no company"));
 
         }
-
-        System.out.println("tenantId = " + tenantId);
 
         if (tenantId == null) {
             throw new AccountHasNoCompany("Account has no company");

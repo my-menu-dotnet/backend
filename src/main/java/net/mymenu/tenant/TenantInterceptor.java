@@ -29,6 +29,7 @@ public class TenantInterceptor implements HandlerInterceptor {
     private static final List<String> FULL_ACCESS_URLS = List.of(
             "/company",
             "/user",
+            "/home",
             "/v1/oauth/refresh-token",
             "/v1/oauth/logout",
             "/v1/oauth/google",
@@ -48,8 +49,6 @@ public class TenantInterceptor implements HandlerInterceptor {
 
         if (uri.startsWith("/menu") || (uri.startsWith("/order") && method.equals("POST")) || uri.equals("/order/user") || uri.equals("/order/user/total")) {
             String companyUrl = request.getHeader("X-Company-ID");
-
-            System.out.println("TENATN BY HEADER " + companyUrl);
 
             Optional<Company> company = companyRepository.findByUrl(companyUrl);
 

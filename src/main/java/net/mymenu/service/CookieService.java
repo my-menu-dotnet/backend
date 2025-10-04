@@ -37,7 +37,7 @@ public class CookieService {
     public ResponseCookie createCookie(String name, String value, int maxAge, String path) {
         System.out.println("Creating createCookie cookie with value: " + cookieDomain);
         return ResponseCookie.from(name, value)
-                .httpOnly(true)
+                .httpOnly(false)
                 .secure(true)
                 .domain(cookieDomain)
                 .path(path)

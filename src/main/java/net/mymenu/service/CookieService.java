@@ -20,7 +20,7 @@ public class CookieService {
     }
 
     public ResponseCookie createRefreshTokenCookie(String refreshToken) {
-        return createCookie("refreshToken", refreshToken, jwtHelper.REFRESH_EXPIRY_IN_SECONDS, "/v1/oauth/refresh-token");
+        return createCookie("refreshToken", refreshToken, jwtHelper.REFRESH_EXPIRY_IN_SECONDS, "/api/v1/oauth/refresh-token");
     }
 
     public ResponseCookie createIsAuthenticatedCookie(Boolean isAuthenticated) {

@@ -58,6 +58,9 @@ public class Order extends BaseEntity {
     @ManyToOne
     private User user;
 
+    @ManyToOne
+    private Client client;
+
     public String getUserName() {
         return userName != null ? userName : user.getName();
     }

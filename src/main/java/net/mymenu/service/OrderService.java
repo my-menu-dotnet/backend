@@ -1,10 +1,13 @@
 package net.mymenu.service;
 
 import jakarta.transaction.Transactional;
+import net.mymenu.dto.AddressRequest;
 import net.mymenu.dto.order.OrderItemRequest;
 import net.mymenu.enums.DiscountType;
 import net.mymenu.enums.order.OrderStatus;
 import net.mymenu.exception.NotFoundException;
+import net.mymenu.models.Address;
+import net.mymenu.models.Client;
 import net.mymenu.models.Discount;
 import net.mymenu.models.Food;
 import net.mymenu.models.Order;
@@ -12,6 +15,8 @@ import net.mymenu.models.User;
 import net.mymenu.models.food_item.FoodItem;
 import net.mymenu.models.order.OrderDiscount;
 import net.mymenu.models.order.OrderItem;
+import net.mymenu.repository.AddressRepository;
+import net.mymenu.repository.ClientRepository;
 import net.mymenu.repository.FoodRepository;
 import net.mymenu.repository.OrderRepository;
 import net.mymenu.repository.food_item.FoodItemRepository;
@@ -22,6 +27,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class OrderService {
@@ -37,6 +43,12 @@ public class OrderService {
 
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private ClientRepository clientRepository;
+
+    @Autowired
+    private AddressRepository addressRepository;
 
     public OrderItem createOrderItem(OrderItemRequest orderItemRequest) {
         Food food = foodRepository.findById(orderItemRequest.getItemId())
@@ -103,10 +115,14 @@ public class OrderService {
 
     public Order createOrder(List<OrderItem> orderItems) {
         User user = jwtHelper.extractUser();
-        return createOrder(orderItems, user);
+        return createOrder(orderItems, user, null);
     }
 
     public Order createOrder(List<OrderItem> orderItems, User user) {
+        return createOrder(orderItems, user, null);
+    }
+
+    public Order createOrder(List<OrderItem> orderItems, User user, Client client) {
         Order lastOrder = orderRepository.findLastOrder()
                 .orElse(null);
 
@@ -140,9 +156,44 @@ public class OrderService {
                 .orderItems(orderItems)
                 .totalPrice(totalPrice)
                 .user(user)
+                .client(client)
                 .status(OrderStatus.CREATED)
                 .orderNumber(orderNumber)
                 .build();
+    }
+
+    /**
+     * Returns the client identified by {@code clientId}, or — when no id is
+     * provided — creates a new tenant-scoped client from the manual order's
+     * name and address. Throws NotFoundException when the id does not exist.
+     */
+    @Transactional
+    public Client resolveManualClient(UUID clientId, String userName, AddressRequest addressRequest) {
+        if (clientId != null) {
+            return clientRepository.findById(clientId)
+                    .orElseThrow(() -> new NotFoundException("Client not found"));
+        }
+
+        Address address = null;
+        if (addressRequest != null) {
+            address = Address.builder()
+                    .street(addressRequest.getStreet())
+                    .number(addressRequest.getNumber())
+                    .complement(addressRequest.getComplement())
+                    .neighborhood(addressRequest.getNeighborhood())
+                    .city(addressRequest.getCity())
+                    .state(addressRequest.getState())
+                    .zipCode(addressRequest.getZipCode())
+                    .build();
+            addressRepository.saveAndFlush(address);
+        }
+
+        Client client = Client.builder()
+                .name(userName)
+                .address(address)
+                .build();
+
+        return clientRepository.saveAndFlush(client);
     }
 
     public void adjustPositionsForInsert(List<Order> orders, int insertPosition) {

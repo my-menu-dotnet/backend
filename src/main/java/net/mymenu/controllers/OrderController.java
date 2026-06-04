@@ -5,6 +5,7 @@ import net.mymenu.dto.order.*;
 import net.mymenu.enums.order.OrderStatus;
 import net.mymenu.exception.DifferentTotalsOrder;
 import net.mymenu.models.Address;
+import net.mymenu.models.Client;
 import net.mymenu.models.Order;
 import net.mymenu.models.User;
 import net.mymenu.models.order.OrderItem;
@@ -134,13 +135,19 @@ public class OrderController {
     @PostMapping("/anonymously")
     @Transactional
     public ResponseEntity<Order> createManual(@RequestBody OrderCreateRequest orderRequest) {
+        Client client = orderService.resolveManualClient(
+                orderRequest.getClientId(),
+                orderRequest.getUserName(),
+                orderRequest.getAddress()
+        );
+
         Address address = addressService.createAddressFromAddressRequest(orderRequest.getAddress());
 
         List<OrderItem> orderItems = orderRequest.getOrderItems().stream()
                 .map(orderService::createOrderItem)
                 .toList();
 
-        Order order = orderService.createOrder(orderItems, null);
+        Order order = orderService.createOrder(orderItems, null, client);
 
         order.setAddress(address);
         order.setUserName(orderRequest.getUserName());

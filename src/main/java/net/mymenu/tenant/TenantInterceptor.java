@@ -57,22 +57,30 @@ public class TenantInterceptor implements HandlerInterceptor {
 
             Optional<Company> company = companyRepository.findByUrl(companyUrl);
 
-            tenantId = company.map(Company::getId)
-                    .orElseThrow(() -> new NotFoundException("Company not found"));
+            if (company.isPresent()) {
+                tenantId = company.get().getId();
+            } else if (jwtHelper.isAuthenticated()) {
+                // Fallback for admin dashboard requests: when X-Company-ID is not
+                // set (dashboard URL has no /menu/{companyId} segment), use the
+                // authenticated user's company as the tenant.
+                User user = jwtHelper.extractUser();
+                tenantId = Optional.ofNullable(user.getCompany())
+                        .map(Company::getId)
+                        .orElseThrow(() -> new AccountHasNoCompany("Account has no company"));
+            } else {
+                throw new NotFoundException("Company not found");
+            }
         } else {
-            // Verificar outras rotas que não precisam de autenticação
+            // FULL_ACCESS_URLS não exige tenant: o controle de acesso real
+            // fica no controller via @PreAuthorize.
             if (FULL_ACCESS_URLS.contains(uri)) {
-                // Para essas rotas, só tentar extrair user se estiver autenticado
-                if (!jwtHelper.isAuthenticated()) {
-                    return true; // Permitir acesso sem tenant
-                }
+                return true;
             }
 
             User user = jwtHelper.extractUser();
             tenantId = Optional.ofNullable(user.getCompany())
                     .map(Company::getId)
                     .orElseThrow(() -> new AccountHasNoCompany("Account has no company"));
-
         }
 
         if (tenantId == null) {

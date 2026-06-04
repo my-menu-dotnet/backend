@@ -29,7 +29,6 @@ public class CompanyController {
     private CompanyService companyService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Company> registerCompany(@Valid @RequestBody CompanyRequest company) {
         User user = jwtHelper.extractUser();
 

@@ -101,9 +101,8 @@ public class User implements UserDetails, Timestamped {
     @Override
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (this.companies == null || this.companies.isEmpty()) {
-            return List.of(new Role());
-        }
+        // Sempre ADMIN: novos usuários precisam para criar a primeira company
+        // (POST /company não tem @PreAuthorize) e evita NPE em Role.getAuthority().
         return List.of(new Role(UserRole.ADMIN));
     }
 
